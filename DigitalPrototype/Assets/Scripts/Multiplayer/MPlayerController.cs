@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Unity.Netcode;
 
-public class MPlayerController : MonoBehaviour
+public class MPlayerController : NetworkBehaviour
 {
     private GameObject gameControllerObj = null;
     private MGameController gameController = null;
@@ -36,8 +37,7 @@ public class MPlayerController : MonoBehaviour
             mousePos = new Vector3Int(mousePos.x, mousePos.y, 0);
 
             // checking if an ally was clicked
-            bool clickedAlly = gameController.clickedAlly(mousePos);
-            Debug.Log("clickedAlly: " + clickedAlly);
+            clickedAllyServerRpc(mousePos, new ServerRpcParams());
         }
     }
 
@@ -45,6 +45,13 @@ public class MPlayerController : MonoBehaviour
     {
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         return currGrid.WorldToCell(mouseWorldPos);
+    }
+
+    [ServerRpc]
+    public void clickedAllyServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
+    {
+        Debug.Log("request from client " + serverRpcParams.Receive.SenderClientId);
+        return;
     }
 }
 

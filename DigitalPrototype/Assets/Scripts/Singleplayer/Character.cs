@@ -33,6 +33,7 @@ public class Character : MonoBehaviour
     private bool isDead = false;
     private bool canAttack = true;
     private bool isEnemy = false;
+    public int playerNum = 0; 
     public int HPCost = 0;
     public int STRCost = 0;
     public int MAGCost = 0;
@@ -161,6 +162,11 @@ public class Character : MonoBehaviour
         transform.position = transform.position +  bodyPrefab.transform.position;
 
         if (isEnemy == true)
+            GetComponent<SpriteRenderer>().color = Color.red;
+
+        if (playerNum == 1)
+            GetComponent<SpriteRenderer>().color = Color.blue;
+        if (playerNum == 2)
             GetComponent<SpriteRenderer>().color = Color.red;
     }
 
