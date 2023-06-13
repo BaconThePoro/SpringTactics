@@ -67,7 +67,6 @@ public class PlayerController : MonoBehaviour
     private Button upgradeButton = null;
     private Button inspectButton = null;
     private Button deselectButton = null;
-    private int enemyNum = 0;
     private Vector3 menuOffset = new Vector3(2.5f, -2f, 0);
     private Vector3 lastClickPos = Vector3.zero;
 
