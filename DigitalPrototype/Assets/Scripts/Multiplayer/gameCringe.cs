@@ -1,4 +1,4 @@
-using System.Collections;
+/*using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -273,7 +273,7 @@ public class gameCringe : MonoBehaviour
                 previousMousePos = mousePos;
             }
 
-            // if user presses right click, end turn
+            // if user presses Q click, end turn
             if (Input.GetKey(KeyCode.Q) && currTurnMode == turnMode.PlayerTurn)
             {
                 endTurnButtonPressed();
@@ -632,76 +632,11 @@ public class gameCringe : MonoBehaviour
         return currGrid.WorldToCell(mouseWorldPos);
     }
 
-    public void changeTurn(turnMode newTurn)
-    {
-        turnMode prevTurnMode = currTurnMode;
-        currTurnMode = newTurn;
+   
 
-        // make sure to update turn text as well
-        updateTurnText();
+    
 
-        if (currTurnMode == newTurn)
-        {
-            Debug.Log("turnMode changed from " + prevTurnMode + " to " + newTurn);
-           
-            // if player turn
-            if (currTurnMode == turnMode.PlayerTurn)
-            {
-                if (playerController.ourTurn == false)
-                {
-                    playerController.ourTurn = true;
-                }
-
-                
-                // give player back their end turn button
-                endTurnButton.gameObject.SetActive(true);
-            }
-            // if enemy turn
-            else
-            {
-                playerController.ourTurn = false;
-                playerController.deselectTarget();
-
-                // turn off end turn button for player since it isnt their turn
-                endTurnButton.gameObject.SetActive(false);
-
-                enemyController.resetAllMove();
-                StartCoroutine(enemyController.enemyTurn());
-            }
-        }
-        else
-        {
-            Debug.Log("!!! Failed to change turnMode from " + prevTurnMode + " to " + newTurn);
-            
-        }
-    }
-
-    public void changeMode(gameMode newMode)
-    {
-        gameMode prevGameMode = currGameMode; 
-        currGameMode = newMode;
-
-        if (currGameMode == newMode)
-        {
-            Debug.Log("gameMode changed from " + prevGameMode + " to " + newMode);
-        }
-        else
-        {
-            Debug.Log("!!! Failed to change gameMode from " + prevGameMode + " to " + newMode);
-        }
-    }
-
-    public void updateTurnText()
-    {
-        if (currTurnMode == turnMode.PlayerTurn)
-        {
-            turnModeTXT.text = "Player Turn";    
-        }
-        else 
-        {
-            turnModeTXT.text = "Enemy Turn";
-        }
-    }
+    
 
     public void endTurnButtonPressed()
     {
@@ -1121,3 +1056,4 @@ public class gameCringe : MonoBehaviour
     }
 
 }
+*/
