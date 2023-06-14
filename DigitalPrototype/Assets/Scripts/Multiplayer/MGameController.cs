@@ -1,17 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
-using UnityEngine.EventSystems;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine.Tilemaps;
-using Quaternion = UnityEngine.Quaternion;
-using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
-using UnityEngine.SceneManagement;
 using Unity.Netcode;
 
 public class MGameController : NetworkBehaviour
@@ -26,7 +20,8 @@ public class MGameController : NetworkBehaviour
 
     private TMPro.TMP_Text turnModeTXT = null;
     private Grid currGrid = null;
-
+    private float delay = 0.6f;
+    
     // p1 stuff
     private GameObject p1; 
     private GameObject[] p1Units;
@@ -78,13 +73,11 @@ public class MGameController : NetworkBehaviour
     private GameObject attackAreaParent = null;
     private GameObject[] moveAreas;
     private GameObject[] attackAreas;
-    public Pathfinding pathfinding = null;
-    private Tilemap collisionGrid = null;
-    private Tilemap overlayGrid = null;
-    private Tile moveTile = null;
-
-
-
+    private MPathfinding pathfinding = null;
+    public Tilemap collisionMap = null;
+    private Tilemap overlayMap = null;
+    public Tile moveTile = null;
+    private int clickLock = 0; // 0 = no blocking, 1 = block player 1, 2 = block player 2
     
     void Start()
     {
@@ -110,10 +103,8 @@ public class MGameController : NetworkBehaviour
         movLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
         //Finding Parents for movment area display
-        pathfinding = new Pathfinding(17, 11, collisionGrid);
-        collisionGrid = GameObject.Find("collisionMap").GetComponent<Tilemap>();
-        overlayGrid = GameObject.Find("overlayMap").GetComponent<Tilemap>();
-        moveTile = GameObject.Find("blue").GetComponent<Tile>();
+        overlayMap = GameObject.Find("overlayMap").GetComponent<Tilemap>();
+        pathfinding = new MPathfinding(17, 11, collisionMap);
         moveAreaParent = GameObject.Find("moveAreas").gameObject;
         attackAreaParent = GameObject.Find("attackAreas").gameObject;
         turnModeTXT = GameObject.Find("currentTurnTXT").GetComponent<TMPro.TextMeshProUGUI>();
@@ -182,6 +173,12 @@ public class MGameController : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
+            if (NetworkManager.Singleton.LocalClientId == 1 && clickLock == 1)
+                return;
+            
+            if (NetworkManager.Singleton.LocalClientId == 2 && clickLock == 2)
+                return;
+            
             // if over UI ignore
             if (EventSystem.current.IsPointerOverGameObject())
             {
@@ -193,11 +190,14 @@ public class MGameController : NetworkBehaviour
             Vector3Int mousePos = GetMousePosition();
             mousePos = new Vector3Int(mousePos.x, mousePos.y, 0);
 
+            if (moveActive == true)
+            {
+                validatePathServerRpc(mousePos, new ServerRpcParams());
+                return;
+            }
+            
             // checking if an ally or enemy was clicked
             clickedCharServerRpc(mousePos, new ServerRpcParams());
-            
-            
-            
         }
     }
 
@@ -228,6 +228,8 @@ public class MGameController : NetworkBehaviour
         {
             Debug.Log("!!! Failed to change turnMode from " + prevTurnMode + " to " + newTurn);
         }
+        
+        passTurnModeClientRpc(currTurnMode);
     }
 
     public void changeMode(gameMode newMode)
@@ -522,6 +524,8 @@ public class MGameController : NetworkBehaviour
         p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p1Targeted = null;
         p1TargetedStats = null;
+        contextMenu.SetActive(false);
+        overlayMap.ClearAllTiles(); // turn off movement highlighting
     }
 
     [ClientRpc]
@@ -551,6 +555,8 @@ public class MGameController : NetworkBehaviour
         p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p2Targeted = null;
         p2TargetedStats = null;
+        contextMenu.SetActive(false);
+        overlayMap.ClearAllTiles(); // turn off movement highlighting
     }
 
     [ClientRpc]
@@ -561,7 +567,7 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
-            contextMenu.SetActive(true);
+        contextMenu.SetActive(true);
 
         menuOffset = new Vector3(Screen.width*0.11f, -Screen.height*0.16f, 0);
         Vector3 menuPos = Camera.main.WorldToScreenPoint(mousePos);
@@ -591,7 +597,7 @@ public class MGameController : NetworkBehaviour
         contextMenu.transform.position = menuPos;
 
         // if ally
-        if (p1TargetedStats.getIsEnemy() == false)
+        if (p1Targeted.transform.IsChildOf(p1.transform))
         {
             charInfoPanel.gameObject.SetActive(true);
             P1updateCharInfo();
@@ -599,7 +605,7 @@ public class MGameController : NetworkBehaviour
             //showArea(currTargeted);
 
             // move button
-            if (p1TargetedStats.movLeft > 0)
+            if (p1TargetedStats.movLeft > 0 && currTurnMode == turnMode.Player1Turn)
             {
                 moveButton.interactable = true;
             }
@@ -610,7 +616,7 @@ public class MGameController : NetworkBehaviour
             }
 
             // attack button
-            if (p1TargetedStats.getCanAttack() == true)
+            if (p1TargetedStats.getCanAttack() == true && currTurnMode == turnMode.Player1Turn)
             {
                 attackButton.interactable = true;
             }
@@ -620,7 +626,15 @@ public class MGameController : NetworkBehaviour
             }
 
             // upgrade button
-            upgradeButton.interactable = true;
+            if (currTurnMode == turnMode.Player1Turn)
+            {
+                upgradeButton.interactable = true;
+            }
+            else
+            {
+                upgradeButton.interactable = false;
+            }
+            
 
             // inspect button
             inspectButton.interactable = true;
@@ -683,7 +697,7 @@ public class MGameController : NetworkBehaviour
         contextMenu.transform.position = menuPos;
 
         // if ally
-        if (p2TargetedStats.getIsEnemy() == false)
+        if (p2Targeted.transform.IsChildOf(p2.transform))
         {
             charInfoPanel.gameObject.SetActive(true);
             P2updateCharInfo();
@@ -691,7 +705,7 @@ public class MGameController : NetworkBehaviour
             //showArea(currTargeted);
 
             // move button
-            if (p2TargetedStats.movLeft > 0)
+            if (p2TargetedStats.movLeft > 0 && currTurnMode == turnMode.Player2Turn)
             {
                 moveButton.interactable = true;
             }
@@ -702,7 +716,7 @@ public class MGameController : NetworkBehaviour
             }
 
             // attack button
-            if (p2TargetedStats.getCanAttack() == true)
+            if (p2TargetedStats.getCanAttack() == true && currTurnMode == turnMode.Player2Turn)
             {
                 attackButton.interactable = true;
             }
@@ -712,8 +726,15 @@ public class MGameController : NetworkBehaviour
             }
 
             // upgrade button
-            upgradeButton.interactable = true;
-
+            if (currTurnMode == turnMode.Player2Turn)
+            {
+                upgradeButton.interactable = true;
+            }
+            else
+            {
+                upgradeButton.interactable = false;
+            }
+            
             // inspect button
             inspectButton.interactable = true;
 
@@ -788,11 +809,10 @@ public class MGameController : NetworkBehaviour
         }
     }
     
-    [ClientRpc]
-    public void highlightMoveClientRpc()
+    public void highlightMove()
     {
-        //For Player 1 movment 
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        //For Player 1 movement 
+        if (NetworkManager.Singleton.LocalClientId == 1 && currTurnMode == turnMode.Player1Turn)
         {
             moveActive = true;
             attackActive = false;
@@ -810,14 +830,14 @@ public class MGameController : NetworkBehaviour
                     if (vectorPath != null)
                     {
                         Vector3Int newPos = new Vector3Int(currPos.x + i, currPos.y + j, 0);
-                        overlayGrid.SetTile(newPos, moveTile);
+                        overlayMap.SetTile(newPos, moveTile);
                     }
                 }
             }
         }
         
-        //For Player 2 movment 
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        //For Player 2 movement 
+        if (NetworkManager.Singleton.LocalClientId == 2 && currTurnMode == turnMode.Player2Turn)
         {
             moveActive = true;
             attackActive = false;
@@ -835,7 +855,7 @@ public class MGameController : NetworkBehaviour
                     if (vectorPath != null)
                     {
                         Vector3Int newPos = new Vector3Int(currPos.x + i, currPos.y + j, 0);
-                        overlayGrid.SetTile(newPos, moveTile);
+                        overlayMap.SetTile(newPos, moveTile);
                     }
                 }
             }
@@ -847,8 +867,187 @@ public class MGameController : NetworkBehaviour
     //calls client RPC for move squares 
     public void moveButtonPressed()
     {
-        highlightMoveClientRpc();
-        
+        Debug.Log("move button pressed");
+        moveActiveServerRpc(true);
+        highlightMove();
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    public void moveActiveServerRpc(bool cond)
+    {
+        moveActive = cond;
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void validatePathServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
+    {
+        if ((int)serverRpcParams.Receive.SenderClientId == 1 && currTurnMode == turnMode.Player1Turn)
+        {
+            List<PathNode> vectorPath = new List<PathNode>();
+            vectorPath = pathfinding.FindPath((int)p1Targeted.transform.position.x, (int)p1Targeted.transform.position.y,
+                mousePos.x, mousePos.y, p1TargetedStats.movLeft);
+
+            // valid moveable path
+            if (vectorPath != null)
+            {
+                clickLock = 1;
+                StartCoroutine(movePathServer(vectorPath, serverRpcParams));
+                pathfinding.resetCollision();
+            }
+            // invalid path 
+            else
+            {
+                deselectTargetServerRpc(serverRpcParams);
+            }
+
+            // unhighlight moveTiles
+            clearOverlayClientRpc(false);
+            overlayMap.ClearAllTiles();
+            moveActive = false;
+        }
+        if ((int)serverRpcParams.Receive.SenderClientId == 2 && currTurnMode == turnMode.Player2Turn)
+        {
+            List<PathNode> vectorPath = new List<PathNode>();
+            vectorPath = pathfinding.FindPath((int)p2Targeted.transform.position.x, (int)p2Targeted.transform.position.y,
+                mousePos.x, mousePos.y, p2TargetedStats.movLeft);
+
+            // valid moveable path
+            if (vectorPath != null)
+            {
+                clickLock = 2; 
+                StartCoroutine(movePathServer(vectorPath, serverRpcParams));
+                pathfinding.resetCollision();
+            }
+            // invalid path 
+            else
+            {
+                deselectTargetServerRpc(serverRpcParams);
+            }
+
+            // unhighlight moveTiles
+            overlayMap.ClearAllTiles();
+            clearOverlayClientRpc(true);
+            moveActive = false;
+        }
+    }
+    
+    
+    public IEnumerator movePathServer(List<PathNode> vectorPath, ServerRpcParams serverRpcParams)
+    {
+        if ((int)serverRpcParams.Receive.SenderClientId == 1 && currTurnMode == turnMode.Player1Turn)
+        {
+            moveActive = false;
+            clickLock = 1; 
+            // stop player from ending turn during movement
+            changeMode(gameMode.MenuMode);
+
+            for (int i = 1; i < vectorPath.Count; i++)
+            {
+                p1Targeted.transform.position = new Vector3(vectorPath[i].x, vectorPath[i].y, 0);
+                copyMoveClientRpc(p1Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
+                p1TargetedStats.movLeft--;
+                passStatsClientRpc(p1Targeted.name, p1TargetedStats.movLeft);
+                //hideArea();
+                //showArea(currTargeted);
+                P1updateCharInfo();
+                
+                yield return new WaitForSeconds(delay);
+            }
+
+            changeMode(gameMode.MapMode);
+            clickLock = 0;
+            moveActiveServerRpc(false);
+            P1openContextMenuClientRpc(p1Targeted.transform.position);
+        }
+
+        if ((int)serverRpcParams.Receive.SenderClientId == 2 && currTurnMode == turnMode.Player2Turn)
+        {
+            moveActive = false;
+            clickLock = 2; 
+            // stop player from ending turn during movement
+            changeMode(gameMode.MenuMode);
+
+            for (int i = 1; i < vectorPath.Count; i++)
+            {
+                p2Targeted.transform.position = new Vector3(vectorPath[i].x, vectorPath[i].y, 0);
+                copyMoveClientRpc(p2Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
+                p2TargetedStats.movLeft--;
+                passStatsClientRpc(p2Targeted.name, p2TargetedStats.movLeft);
+                //hideArea();
+                //showArea(currTargeted);
+                P2updateCharInfo();
+                yield return new WaitForSeconds(delay);
+            }
+
+            changeMode(gameMode.MapMode);
+            clickLock = 0;
+            moveActiveServerRpc(false);
+            P2openContextMenuClientRpc(p2Targeted.transform.position);
+        }
+    }
+
+    [ClientRpc]
+    public void copyMoveClientRpc(string name, Vector3 newPosition)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        targetUnit.transform.position = newPosition;
+    }
+
+    // player1 = false, player2 = true
+    [ClientRpc]
+    public void clearOverlayClientRpc(bool Player)
+    {
+        // player 1
+        if (!Player)
+        {
+            // ignore if player 2
+            if (NetworkManager.Singleton.LocalClientId == 2)
+            {
+                return;
+            }
+        }
+        // player 2
+        else
+        {
+            if (NetworkManager.Singleton.LocalClientId == 1)
+            {
+                return;
+            }
+        }
+        overlayMap.ClearAllTiles();
+    }
+
+    [ClientRpc]
+    public void passTurnModeClientRpc(turnMode newTurnMode)
+    {
+        currTurnMode = newTurnMode; 
+    }
+
+    [ClientRpc]
+    public void passStatsClientRpc(string name, int movleft)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.movLeft = movleft;
+    }
+    
+    public bool unitHere(Vector3Int pos)
+    {
+        for (int i = 0; i < p1.transform.childCount; i++)
+        {
+            if (p1Units[i].transform.position == pos && p1Stats[i].getIsDead() == false)
+            {
+                return true;
+            }
+        }
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            if (p2Units[i].transform.position == pos && p2Stats[i].getIsDead() == false)
+            {
+                return true;
+            }
+        }
+
+        return false; 
+    }
 }
