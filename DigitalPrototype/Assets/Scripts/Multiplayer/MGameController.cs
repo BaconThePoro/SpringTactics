@@ -45,9 +45,68 @@ public class MGameController : NetworkBehaviour
     public Character.weaponType[] p2weaponsList;
     private GameObject p2Targeted = null;
     private Character p2TargetedStats = null;
+    
+    //context Menu buttons/interaction
+    public GameObject contextMenu = null;
+    //Above must be attached in editor
+    private Button moveButton = null;
+    private Button attackButton = null;
+    private Button upgradeButton = null;
+    private Button inspectButton = null;
+    private Button deselectButton = null;
+    private Vector3 menuOffset = new Vector3(2.5f, -2f, 0);
+    
+    //Character Information Panel Info
+    public GameObject charInfoPanel = null;
+    //Above must be attached in editor
+    private GameObject movLeftTXT = null;
+    private GameObject movLeftNUMObj = null;
+    private TMPro.TextMeshProUGUI charNameTXT = null;
+    private TMPro.TextMeshProUGUI hpNUM = null;
+    private TMPro.TextMeshProUGUI strNUM = null;
+    private TMPro.TextMeshProUGUI magNUM = null;
+    private TMPro.TextMeshProUGUI spdNUM = null;
+    private TMPro.TextMeshProUGUI defNUM = null;
+    private TMPro.TextMeshProUGUI resNUM = null;
+    private TMPro.TextMeshProUGUI movNUM = null;
+    private TMPro.TextMeshProUGUI movLeftNUM = null;
+    
+    //Movement Area Squares 
+    private bool moveActive = false;
+    private bool attackActive = false;
+    private GameObject moveAreaParent = null;
+    private GameObject attackAreaParent = null;
+    private GameObject[] moveAreas;
+    private GameObject[] attackAreas;
+
 
     void Start()
     {
+        
+        //Getting all context menu buttons
+        moveButton = contextMenu.transform.GetChild(0).GetComponent<Button>();
+        attackButton = contextMenu.transform.GetChild(1).GetComponent<Button>();
+        upgradeButton = contextMenu.transform.GetChild(2).GetComponent<Button>();
+        inspectButton = contextMenu.transform.GetChild(3).GetComponent<Button>();
+        deselectButton = contextMenu.transform.GetChild(4).GetComponent<Button>();
+      
+        //Char Info gets all information for stats
+        charNameTXT = charInfoPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
+        movLeftTXT = charInfoPanel.transform.GetChild(9).gameObject;
+        hpNUM = charInfoPanel.transform.GetChild(10).GetComponent<TMPro.TextMeshProUGUI>();
+        strNUM = charInfoPanel.transform.GetChild(11).GetComponent<TMPro.TextMeshProUGUI>();
+        magNUM = charInfoPanel.transform.GetChild(12).GetComponent<TMPro.TextMeshProUGUI>();
+        spdNUM = charInfoPanel.transform.GetChild(13).GetComponent<TMPro.TextMeshProUGUI>();
+        defNUM = charInfoPanel.transform.GetChild(14).GetComponent<TMPro.TextMeshProUGUI>();
+        resNUM = charInfoPanel.transform.GetChild(15).GetComponent<TMPro.TextMeshProUGUI>();
+        movNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
+        movLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
+        movLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
+        
+        //Finding Parents for movment area display
+        moveAreaParent = GameObject.Find("moveAreas").gameObject;
+        attackAreaParent = GameObject.Find("attackAreas").gameObject;
+        
         turnModeTXT = GameObject.Find("currentTurnTXT").GetComponent<TMPro.TextMeshProUGUI>();
         currGrid = GameObject.Find("Grid").gameObject.GetComponent<Grid>();
 
@@ -87,6 +146,27 @@ public class MGameController : NetworkBehaviour
 
             i += 1;
         }
+        
+        moveAreas = new GameObject[moveAreaParent.transform.childCount];
+        i = 0;
+        foreach (Transform child in moveAreaParent.transform)
+        {
+            moveAreas[i] = child.gameObject;
+            i += 1;
+        }
+
+        attackAreas = new GameObject[attackAreaParent.transform.childCount];
+        i = 0;
+        foreach (Transform child in attackAreaParent.transform)
+        {
+            attackAreas[i] = child.gameObject;
+            i += 1;
+        }  
+        
+        
+        
+        
+        
 
         changeTurn(turnMode.Player1Turn);
         changeMode(gameMode.MapMode);
@@ -198,7 +278,7 @@ public class MGameController : NetworkBehaviour
                 {
                     deselectTargetServerRpc(serverRpcParams);
                     targetAllyServerRpc(i, serverRpcParams);                                   
-                    //openContextMenu(mousePos);
+                    P1openContextMenuClientRpc(mousePos);
                     Debug.Log("Player 1 clicked an Ally");
                     return;
                 }
@@ -206,7 +286,7 @@ public class MGameController : NetworkBehaviour
 
             // else, clicked nothing
             deselectTargetServerRpc(serverRpcParams);
-            //contextMenu.SetActive(false);
+            contextMenu.SetActive(false);
         }
         // player 2
         else
@@ -218,7 +298,7 @@ public class MGameController : NetworkBehaviour
                 {                     
                     deselectTargetServerRpc(serverRpcParams);
                     targetAllyServerRpc(i, serverRpcParams);
-                    //openContextMenu(mousePos);
+                    P2openContextMenuClientRpc(mousePos);
                     Debug.Log("Player 2 clicked an Ally");
                     return;
                 }
@@ -226,7 +306,7 @@ public class MGameController : NetworkBehaviour
 
             // else, clicked nothing
             deselectTargetServerRpc(serverRpcParams);
-            //contextMenu.SetActive(false);
+            contextMenu.SetActive(false);
         }
     }
 
@@ -409,10 +489,15 @@ public class MGameController : NetworkBehaviour
         p2TargetedStats = null;
     }
 
-
-    /*public void openContextMenu(Vector3 mousePos)
+    [ClientRpc]
+    public void P1openContextMenuClientRpc(Vector3 mousePos)
     {
-        contextMenu.SetActive(true);
+        //Ignore for player 2. 
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+            contextMenu.SetActive(true);
 
         menuOffset = new Vector3(Screen.width*0.11f, -Screen.height*0.16f, 0);
         Vector3 menuPos = Camera.main.WorldToScreenPoint(mousePos);
@@ -442,15 +527,15 @@ public class MGameController : NetworkBehaviour
         contextMenu.transform.position = menuPos;
 
         // if ally
-        if (currTargetedStats.getIsEnemy() == false)
+        if (p1TargetedStats.getIsEnemy() == false)
         {
             charInfoPanel.gameObject.SetActive(true);
-            updateCharInfo();
+            P1updateCharInfo();
             //hideArea();
             //showArea(currTargeted);
 
             // move button
-            if (currTargetedStats.movLeft > 0)
+            if (p1TargetedStats.movLeft > 0)
             {
                 moveButton.interactable = true;
             }
@@ -461,7 +546,7 @@ public class MGameController : NetworkBehaviour
             }
 
             // attack button
-            if (currTargetedStats.getCanAttack() == true)
+            if (p1TargetedStats.getCanAttack() == true)
             {
                 attackButton.interactable = true;
             }
@@ -484,7 +569,7 @@ public class MGameController : NetworkBehaviour
         else
         {
             charInfoPanel.gameObject.SetActive(true);
-            updateCharInfo();
+            P1updateCharInfo();
             //hideArea();
             //showArea(currTargeted);
 
@@ -494,5 +579,148 @@ public class MGameController : NetworkBehaviour
             inspectButton.interactable = true;
             deselectButton.interactable = true; 
         }
-    }*/
+    }
+    
+    [ClientRpc]
+    public void P2openContextMenuClientRpc(Vector3 mousePos)
+    {
+        //Ignore for player 2. 
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            return;
+        }
+            contextMenu.SetActive(true);
+
+        menuOffset = new Vector3(Screen.width*0.11f, -Screen.height*0.16f, 0);
+        Vector3 menuPos = Camera.main.WorldToScreenPoint(mousePos);
+        menuPos = menuPos + menuOffset;
+
+        // right % of screen
+        float widthPercent = 0.9f;
+        if (menuPos.x > Screen.width * widthPercent)
+        {          
+            float widthP = menuPos.x / Screen.width; // what % of screen are we at
+            float inverseW = 1 - widthP;
+
+            Vector3 newOffset = new Vector3((Screen.width * 0.25f) * widthP, 0, 0);
+            menuPos = menuPos - newOffset;
+        }
+        // bottom % of screen
+        float heightPercent = 0.25f;
+        if (menuPos.y < Screen.height * heightPercent)
+        {  
+            float heightP = menuPos.y / Screen.height; // what % of screen are we at
+            float inverseH = 1 - heightP;
+
+            Vector3 newOffset = new Vector3(0, (Screen.height * heightPercent) * inverseH, 0);
+            menuPos = menuPos + newOffset;
+        }
+
+        contextMenu.transform.position = menuPos;
+
+        // if ally
+        if (p2TargetedStats.getIsEnemy() == false)
+        {
+            charInfoPanel.gameObject.SetActive(true);
+            P2updateCharInfo();
+            //hideArea();
+            //showArea(currTargeted);
+
+            // move button
+            if (p2TargetedStats.movLeft > 0)
+            {
+                moveButton.interactable = true;
+            }
+            else
+            {
+                moveButton.interactable = false;
+                moveActive = false;
+            }
+
+            // attack button
+            if (p2TargetedStats.getCanAttack() == true)
+            {
+                attackButton.interactable = true;
+            }
+            else
+            {
+                attackButton.interactable = false;
+            }
+
+            // upgrade button
+            upgradeButton.interactable = true;
+
+            // inspect button
+            inspectButton.interactable = true;
+
+            // deselect button
+            deselectButton.interactable = true;
+        }
+
+        // if enemy
+        else
+        {
+            charInfoPanel.gameObject.SetActive(true);
+            P2updateCharInfo();
+            //hideArea();
+            //showArea(currTargeted);
+
+            moveButton.interactable = false;
+            attackButton.interactable = false;
+            upgradeButton.interactable = false;
+            inspectButton.interactable = true;
+            deselectButton.interactable = true; 
+        }
+    }
+    
+    
+    public void P1updateCharInfo()
+    {
+        charNameTXT.text = "Name: " + p1TargetedStats.charName;
+        hpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
+        strNUM.text = "" + p1TargetedStats.STR;
+        magNUM.text = "" + p1TargetedStats.MAG;
+        defNUM.text = "" + p1TargetedStats.DEF;
+        resNUM.text = "" + p1TargetedStats.RES;
+        spdNUM.text = "" + p1TargetedStats.SPD;
+
+        if (!p1Targeted.transform.IsChildOf(p2.transform))
+        {
+            movNUM.text = "" + p1TargetedStats.MOV;
+            movLeftNUM.text = "" + p1TargetedStats.movLeft;
+            movLeftTXT.SetActive(true);
+            movLeftNUMObj.SetActive(true);
+        }
+        else
+        {
+            movNUM.text = "" + p1TargetedStats.MOV;
+            movLeftTXT.SetActive(false);
+            movLeftNUMObj.SetActive(false);
+        }
+    }
+    
+    public void P2updateCharInfo()
+    {
+        charNameTXT.text = "Name: " + p2TargetedStats.charName;
+        hpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
+        strNUM.text = "" + p2TargetedStats.STR;
+        magNUM.text = "" + p2TargetedStats.MAG;
+        defNUM.text = "" + p2TargetedStats.DEF;
+        resNUM.text = "" + p2TargetedStats.RES;
+        spdNUM.text = "" + p2TargetedStats.SPD;
+
+        if (!p1Targeted.transform.IsChildOf(p2.transform))
+        {
+            movNUM.text = "" + p2TargetedStats.MOV;
+            movLeftNUM.text = "" + p2TargetedStats.movLeft;
+            movLeftTXT.SetActive(true);
+            movLeftNUMObj.SetActive(true);
+        }
+        else
+        {
+            movNUM.text = "" + p2TargetedStats.MOV;
+            movLeftTXT.SetActive(false);
+            movLeftNUMObj.SetActive(false);
+        }
+    }
 }
