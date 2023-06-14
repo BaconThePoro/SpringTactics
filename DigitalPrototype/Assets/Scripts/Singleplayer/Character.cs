@@ -165,9 +165,15 @@ public class Character : MonoBehaviour
             GetComponent<SpriteRenderer>().color = Color.red;
 
         if (playerNum == 1)
+        {
             GetComponent<SpriteRenderer>().color = Color.blue;
+        }
+            
         if (playerNum == 2)
+        {
             GetComponent<SpriteRenderer>().color = Color.red;
+        }
+            
     }
 
     public void setWeaponVisuals()
