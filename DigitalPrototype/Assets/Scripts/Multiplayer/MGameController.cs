@@ -78,10 +78,17 @@ public class MGameController : NetworkBehaviour
     private GameObject attackAreaParent = null;
     private GameObject[] moveAreas;
     private GameObject[] attackAreas;
+    public Pathfinding pathfinding = null;
+    private Tilemap collisionGrid = null;
+    private Tilemap overlayGrid = null;
+    private Tile moveTile = null;
+
+
+
     
     void Start()
     {
-        
+
         //Getting all context menu buttons
         moveButton = contextMenu.transform.GetChild(0).GetComponent<Button>();
         attackButton = contextMenu.transform.GetChild(1).GetComponent<Button>();
@@ -103,9 +110,12 @@ public class MGameController : NetworkBehaviour
         movLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
         //Finding Parents for movment area display
+        pathfinding = new Pathfinding(17, 11, collisionGrid);
+        collisionGrid = GameObject.Find("collisionMap").GetComponent<Tilemap>();
+        overlayGrid = GameObject.Find("overlayMap").GetComponent<Tilemap>();
+        moveTile = GameObject.Find("blue").GetComponent<Tile>();
         moveAreaParent = GameObject.Find("moveAreas").gameObject;
         attackAreaParent = GameObject.Find("attackAreas").gameObject;
-        
         turnModeTXT = GameObject.Find("currentTurnTXT").GetComponent<TMPro.TextMeshProUGUI>();
         currGrid = GameObject.Find("Grid").gameObject.GetComponent<Grid>();
 
@@ -161,10 +171,6 @@ public class MGameController : NetworkBehaviour
             attackAreas[i] = child.gameObject;
             i += 1;
         }  
-        
-        
-        
-        
         
 
         changeTurn(turnMode.Player1Turn);
@@ -339,56 +345,7 @@ public class MGameController : NetworkBehaviour
         }
     }
 
-    /*[ServerRpc(RequireOwnership = false)]
-    public void clickedOppServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
-    {
-        
-        Debug.Log("Request from Player " + (serverRpcParams.Receive.SenderClientId));
-
-        // if player 1
-        if ((int)serverRpcParams.Receive.SenderClientId == 1)
-        {
-            for (int i = 0; i < p2Units.Length; i++)
-            {
-                // an opp was clicked
-                if (mousePos == p2Units[i].transform.position && p2Stats[i].getIsDead() == false)
-                {
-                    GameObject target = p2Units[i];
-                    deselectTargetServerRpc(serverRpcParams);
-                    targetServerRpc(target.transform.name, serverRpcParams);                                   
-                    P1openContextMenuClientRpc(mousePos);
-                    return;
-                }
-            }
-
-            // else, clicked nothing
-            deselectTargetServerRpc(serverRpcParams);
-            contextMenu.SetActive(false);
-        }
-        // player 2
-        else
-        {
-            for (int i = 0; i < p1Units.Length; i++)
-            {
-                // an enemy was clicked
-                if (mousePos == p1Units[i].transform.position && p1Stats[i].getIsDead() == false)
-                {              
-                    GameObject target = p1Units[i];
-                    deselectTargetServerRpc(serverRpcParams);
-                    targetServerRpc(target.transform.name, serverRpcParams);                                   
-                    P2openContextMenuClientRpc(mousePos);
-                    return;
-                }
-            }
-
-            // else, clicked nothing
-            deselectTargetServerRpc(serverRpcParams);
-            contextMenu.SetActive(false);
-        }
-        
-    }
-    */
-
+    
     [ServerRpc(RequireOwnership = false)]
     public void endTurnServerRpc(ServerRpcParams serverRpcParams)
     {
@@ -781,7 +738,7 @@ public class MGameController : NetworkBehaviour
     }
     
     
-    public void P1updateCharInfo()
+     public void P1updateCharInfo()
     {
         charNameTXT.text = "Name: " + p1TargetedStats.charName;
         hpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
@@ -830,4 +787,68 @@ public class MGameController : NetworkBehaviour
             movLeftNUMObj.SetActive(false);
         }
     }
+    
+    [ClientRpc]
+    public void highlightMoveClientRpc()
+    {
+        //For Player 1 movment 
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            moveActive = true;
+            attackActive = false;
+            List<PathNode> vectorPath = new List<PathNode>();
+            Vector3Int currPos = Vector3Int.FloorToInt(p1Targeted.transform.position);
+            int currMov = p1TargetedStats.movLeft;
+            // highlighting moveable tiles
+            for (int i = -currMov; i <= currMov; i++)
+            {
+                for (int j = -currMov; j <= currMov; j++)
+                {
+                    vectorPath = pathfinding.FindPath(currPos.x, currPos.y, 
+                        currPos.x + i, currPos.y + j, currMov);
+                    // if path exists
+                    if (vectorPath != null)
+                    {
+                        Vector3Int newPos = new Vector3Int(currPos.x + i, currPos.y + j, 0);
+                        overlayGrid.SetTile(newPos, moveTile);
+                    }
+                }
+            }
+        }
+        
+        //For Player 2 movment 
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            moveActive = true;
+            attackActive = false;
+            List<PathNode> vectorPath = new List<PathNode>();
+            Vector3Int currPos = Vector3Int.FloorToInt(p2Targeted.transform.position);
+            int currMov = p2TargetedStats.movLeft;
+            // highlighting moveable tiles
+            for (int i = -currMov; i <= currMov; i++)
+            {
+                for (int j = -currMov; j <= currMov; j++)
+                {
+                    vectorPath = pathfinding.FindPath(currPos.x, currPos.y, 
+                        currPos.x + i, currPos.y + j, currMov);
+                    // if path exists
+                    if (vectorPath != null)
+                    {
+                        Vector3Int newPos = new Vector3Int(currPos.x + i, currPos.y + j, 0);
+                        overlayGrid.SetTile(newPos, moveTile);
+                    }
+                }
+            }
+        }
+        
+        contextMenu.SetActive(false);
+    }
+
+    //calls client RPC for move squares 
+    public void moveButtonPressed()
+    {
+        highlightMoveClientRpc();
+        
+    }
+
 }
