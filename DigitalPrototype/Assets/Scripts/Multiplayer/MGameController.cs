@@ -187,11 +187,11 @@ public class MGameController : NetworkBehaviour
             Vector3Int mousePos = GetMousePosition();
             mousePos = new Vector3Int(mousePos.x, mousePos.y, 0);
 
-            // checking if an ally was clicked
-            clickedAllyServerRpc(mousePos, new ServerRpcParams());
+            // checking if an ally or enemy was clicked
+            clickedCharServerRpc(mousePos, new ServerRpcParams());
             
-            //checking if enemy was clicked 
-            clickedOppServerRpc(mousePos, new ServerRpcParams());
+            
+            
         }
     }
 
@@ -266,7 +266,7 @@ public class MGameController : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void clickedAllyServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
+    public void clickedCharServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
     {
         Debug.Log("Request from Player " + (serverRpcParams.Receive.SenderClientId));
 
@@ -283,6 +283,18 @@ public class MGameController : NetworkBehaviour
                     targetServerRpc(target.transform.name, serverRpcParams);                                   
                     P1openContextMenuClientRpc(mousePos);
                     Debug.Log("Player 1 clicked an Ally");
+                    return;
+                }
+            }
+            for (int i = 0; i < p2Units.Length; i++)
+            {
+                // an opp was clicked
+                if (mousePos == p2Units[i].transform.position && p2Stats[i].getIsDead() == false)
+                {
+                    GameObject target = p2Units[i];
+                    deselectTargetServerRpc(serverRpcParams);
+                    targetServerRpc(target.transform.name, serverRpcParams);                                   
+                    P1openContextMenuClientRpc(mousePos);
                     return;
                 }
             }
@@ -307,6 +319,19 @@ public class MGameController : NetworkBehaviour
                     return;
                 }
             }
+            
+            for (int i = 0; i < p1Units.Length; i++)
+            {
+                // an enemy was clicked
+                if (mousePos == p1Units[i].transform.position && p1Stats[i].getIsDead() == false)
+                {              
+                    GameObject target = p1Units[i];
+                    deselectTargetServerRpc(serverRpcParams);
+                    targetServerRpc(target.transform.name, serverRpcParams);                                   
+                    P2openContextMenuClientRpc(mousePos);
+                    return;
+                }
+            }
 
             // else, clicked nothing
             deselectTargetServerRpc(serverRpcParams);
@@ -314,7 +339,7 @@ public class MGameController : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    /*[ServerRpc(RequireOwnership = false)]
     public void clickedOppServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
     {
         
@@ -362,6 +387,7 @@ public class MGameController : NetworkBehaviour
         }
         
     }
+    */
 
     [ServerRpc(RequireOwnership = false)]
     public void endTurnServerRpc(ServerRpcParams serverRpcParams)
