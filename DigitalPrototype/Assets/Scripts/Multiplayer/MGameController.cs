@@ -78,8 +78,7 @@ public class MGameController : NetworkBehaviour
     private GameObject attackAreaParent = null;
     private GameObject[] moveAreas;
     private GameObject[] attackAreas;
-
-
+    
     void Start()
     {
         
@@ -190,6 +189,9 @@ public class MGameController : NetworkBehaviour
 
             // checking if an ally was clicked
             clickedAllyServerRpc(mousePos, new ServerRpcParams());
+            
+            //checking if enemy was clicked 
+            clickedOppServerRpc(mousePos, new ServerRpcParams());
         }
     }
 
@@ -276,8 +278,9 @@ public class MGameController : NetworkBehaviour
                 // an ally was clicked
                 if (mousePos == p1Units[i].transform.position && p1Stats[i].getIsDead() == false)
                 {
+                    GameObject target = p1Units[i];
                     deselectTargetServerRpc(serverRpcParams);
-                    targetAllyServerRpc(i, serverRpcParams);                                   
+                    targetServerRpc(target.transform.name, serverRpcParams);                                   
                     P1openContextMenuClientRpc(mousePos);
                     Debug.Log("Player 1 clicked an Ally");
                     return;
@@ -296,8 +299,9 @@ public class MGameController : NetworkBehaviour
                 // an ally was clicked
                 if (mousePos == p2Units[i].transform.position && p2Stats[i].getIsDead() == false)
                 {                     
+                    GameObject target = p2Units[i];
                     deselectTargetServerRpc(serverRpcParams);
-                    targetAllyServerRpc(i, serverRpcParams);
+                    targetServerRpc(target.transform.name, serverRpcParams);                                   
                     P2openContextMenuClientRpc(mousePos);
                     Debug.Log("Player 2 clicked an Ally");
                     return;
@@ -308,6 +312,55 @@ public class MGameController : NetworkBehaviour
             deselectTargetServerRpc(serverRpcParams);
             contextMenu.SetActive(false);
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void clickedOppServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
+    {
+        
+        Debug.Log("Request from Player " + (serverRpcParams.Receive.SenderClientId));
+
+        // if player 1
+        if ((int)serverRpcParams.Receive.SenderClientId == 1)
+        {
+            for (int i = 0; i < p2Units.Length; i++)
+            {
+                // an opp was clicked
+                if (mousePos == p2Units[i].transform.position && p2Stats[i].getIsDead() == false)
+                {
+                    GameObject target = p2Units[i];
+                    deselectTargetServerRpc(serverRpcParams);
+                    targetServerRpc(target.transform.name, serverRpcParams);                                   
+                    P1openContextMenuClientRpc(mousePos);
+                    return;
+                }
+            }
+
+            // else, clicked nothing
+            deselectTargetServerRpc(serverRpcParams);
+            contextMenu.SetActive(false);
+        }
+        // player 2
+        else
+        {
+            for (int i = 0; i < p1Units.Length; i++)
+            {
+                // an enemy was clicked
+                if (mousePos == p1Units[i].transform.position && p1Stats[i].getIsDead() == false)
+                {              
+                    GameObject target = p1Units[i];
+                    deselectTargetServerRpc(serverRpcParams);
+                    targetServerRpc(target.transform.name, serverRpcParams);                                   
+                    P2openContextMenuClientRpc(mousePos);
+                    return;
+                }
+            }
+
+            // else, clicked nothing
+            deselectTargetServerRpc(serverRpcParams);
+            contextMenu.SetActive(false);
+        }
+        
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -426,57 +479,79 @@ public class MGameController : NetworkBehaviour
         }
     }
 
+    
     [ServerRpc(RequireOwnership = false)]
-    void targetAllyServerRpc(int i, ServerRpcParams serverRpcParams)
+    void targetServerRpc(String targetName, ServerRpcParams serverRpcParams)
     {
+        GameObject target = GameObject.Find(targetName);
         if ((int)serverRpcParams.Receive.SenderClientId == 1)
         {
             //moveActive = false;
             //attackActive = false;
-            if (p1Stats[i].getIsDead() == true)
+            if (target.GetComponent<Character>().getIsDead() == true)
                 return;
-            p1Targeted = p1Units[i];
+            p1Targeted = target;
             p1TargetedStats = p1Targeted.GetComponent<Character>();
             p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
             //gameController.updateUpgradeMenu(currTargeted);
             //hideArea();
-            p1SelectClientRpc(i);
+            p1SelectClientRpc(p1Targeted.transform.name);
         }
         else
         {
             //moveActive = false;
             //attackActive = false;
-            if (p2Stats[i].getIsDead() == true)
+            if (target.GetComponent<Character>().getIsDead() == true)
                 return;
-            p2Targeted = p2Units[i];
+            p2Targeted = target;
             p2TargetedStats = p2Targeted.GetComponent<Character>();
             p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
             //gameController.updateUpgradeMenu(currTargeted);
             //hideArea();
-            p2SelectClientRpc(i);
+            p2SelectClientRpc(p2Targeted.transform.name);
         }
     }
 
     [ClientRpc]
-    void p1SelectClientRpc(int i)
+    void p1SelectClientRpc(String name)
     {
-        p1Targeted = p1Units[i];
+        //if player 2 ignore 
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+        
+        p1Targeted = GameObject.Find(name).gameObject;
         p1TargetedStats = p1Targeted.GetComponent<Character>();
         p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
+        
     }
 
     [ClientRpc]
     void p1DeselectClientRpc()
     {
+        //if player 2 ignore 
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+        
         p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p1Targeted = null;
         p1TargetedStats = null;
     }
 
     [ClientRpc]
-    void p2SelectClientRpc(int i)
+    void p2SelectClientRpc(String name)
     {
-        p2Targeted = p2Units[i];
+        
+        //if player 1 ignore 
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            return;
+        }
+        
+        p2Targeted = GameObject.Find(name).gameObject;
         p2TargetedStats = p2Targeted.GetComponent<Character>();
         p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
     }
@@ -484,6 +559,12 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     void p2DeselectClientRpc()
     {
+        //if player 1 ignore 
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            return;
+        }
+        
         p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p2Targeted = null;
         p2TargetedStats = null;
@@ -584,7 +665,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void P2openContextMenuClientRpc(Vector3 mousePos)
     {
-        //Ignore for player 2. 
+        //Ignore for player 1 
         if (NetworkManager.Singleton.LocalClientId == 1)
         {
             return;
@@ -702,14 +783,14 @@ public class MGameController : NetworkBehaviour
     public void P2updateCharInfo()
     {
         charNameTXT.text = "Name: " + p2TargetedStats.charName;
-        hpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
+        hpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
         strNUM.text = "" + p2TargetedStats.STR;
         magNUM.text = "" + p2TargetedStats.MAG;
         defNUM.text = "" + p2TargetedStats.DEF;
         resNUM.text = "" + p2TargetedStats.RES;
         spdNUM.text = "" + p2TargetedStats.SPD;
 
-        if (!p1Targeted.transform.IsChildOf(p2.transform))
+        if (!p2Targeted.transform.IsChildOf(p2.transform))
         {
             movNUM.text = "" + p2TargetedStats.MOV;
             movLeftNUM.text = "" + p2TargetedStats.movLeft;

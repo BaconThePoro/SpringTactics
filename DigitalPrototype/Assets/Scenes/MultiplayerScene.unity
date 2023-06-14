@@ -20511,7 +20511,7 @@ PrefabInstance:
     - target: {fileID: 5309227884612919478, guid: 800789ef7cbc1b0438a08c50bda86fcc, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: cbb166a47c66f1d44a2e779cfd4ad1aa, type: 3}
+      objectReference: {fileID: 21300000, guid: e17a181a3f5a490469ece9c90ea33a72, type: 3}
     - target: {fileID: 5309227884612919478, guid: 800789ef7cbc1b0438a08c50bda86fcc, type: 3}
       propertyPath: m_SortingOrder
       value: 6
@@ -27974,7 +27974,7 @@ PrefabInstance:
     - target: {fileID: 5309227884612919478, guid: 800789ef7cbc1b0438a08c50bda86fcc, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: a9b59be58c1f71d4db460f5831828788, type: 3}
+      objectReference: {fileID: 21300000, guid: e17a181a3f5a490469ece9c90ea33a72, type: 3}
     - target: {fileID: 5309227884612919478, guid: 800789ef7cbc1b0438a08c50bda86fcc, type: 3}
       propertyPath: m_SortingOrder
       value: 6
@@ -50982,7 +50982,7 @@ GameObject:
   - component: {fileID: 1734628356}
   - component: {fileID: 1734628355}
   m_Layer: 0
-  m_Name: Knight (2)
+  m_Name: RichardCobbe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58471,7 +58471,7 @@ PrefabInstance:
     - target: {fileID: 2106714499836963649, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: cbb166a47c66f1d44a2e779cfd4ad1aa, type: 3}
+      objectReference: {fileID: 21300000, guid: e17a181a3f5a490469ece9c90ea33a72, type: 3}
     - target: {fileID: 6094116921158275649, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: m_Name
       value: GameController
@@ -58615,7 +58615,7 @@ PrefabInstance:
     - target: {fileID: 6094116922017257219, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: a9b59be58c1f71d4db460f5831828788, type: 3}
+      objectReference: {fileID: 21300000, guid: e17a181a3f5a490469ece9c90ea33a72, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
 --- !u!1 &1955908553
