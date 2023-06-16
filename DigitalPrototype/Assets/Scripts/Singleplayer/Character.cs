@@ -361,11 +361,13 @@ public class Character : MonoBehaviour
             SpriteRenderer sR = transform.GetComponent<SpriteRenderer>();
             if (canAttack == true)
             {
-                sR.color = Color.white;
+                Color newColor = new Color(sR.color.r,sR.color.g,sR.color.b,1f);
+                sR.color = newColor;
             }
             else
             {
-                sR.color = Color.grey;
+                Color newColor = new Color(sR.color.r,sR.color.g,sR.color.b,0.5f);
+                sR.color = newColor;
             }
         }
     }

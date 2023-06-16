@@ -323,18 +323,6 @@ public class PlayerController : MonoBehaviour
                 vectorPath = pathfinding.FindPath(currPos.x, currPos.y, 
                     currPos.x + i, currPos.y + j, currMov);
 
-                // Debug Stuff
-/*                if (vectorPath != null)
-                {
-                    for (int k = 0; k < vectorPath.Count; k++)
-                        Debug.Log(vectorPath[k]);
-                }
-                else
-                {
-                    Debug.Log("vectorPath is null"); 
-                }*/
-
-
                 // if path exists
                 if (vectorPath != null)
                 {

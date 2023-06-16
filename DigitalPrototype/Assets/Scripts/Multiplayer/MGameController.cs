@@ -79,6 +79,7 @@ public class MGameController : NetworkBehaviour
     public Tile moveTile = null;
     private int clickLock = 0; // 0 = no blocking, 1 = block player 1, 2 = block player 2
     
+    
     void Start()
     {
 
@@ -200,7 +201,13 @@ public class MGameController : NetworkBehaviour
             clickedCharServerRpc(mousePos, new ServerRpcParams());
         }
     }
-
+    
+    //pass click lock varibale to clients and 
+    [ClientRpc]
+    public void passClickLockClientRpc(int clocklock)
+    {
+        clickLock = clocklock;
+    }
     public void changeTurn(turnMode newTurn)
     {
         turnMode prevTurnMode = currTurnMode;
@@ -212,17 +219,8 @@ public class MGameController : NetworkBehaviour
         if (currTurnMode == newTurn)
         {
             Debug.Log("turnMode changed from " + prevTurnMode + " to " + newTurn);
-
-            // if player1 turn
-            if (currTurnMode == turnMode.Player1Turn)
-            {
-
-            }
-            // if player2 turn
-            else
-            {
-
-            }
+            resetAllMoveServerRpc();
+            resetAllAttackServerRpc();
         }
         else
         {
@@ -366,7 +364,8 @@ public class MGameController : NetworkBehaviour
             else
             {
                 changeTurn(turnMode.Player2Turn);
-                resetP2Attack();
+                resetAllMoveServerRpc();
+                resetAllAttackServerRpc();
             }
         }
         // player 2 turn
@@ -380,7 +379,8 @@ public class MGameController : NetworkBehaviour
             else
             {
                 changeTurn(turnMode.Player1Turn);
-                resetP1Attack();
+                resetAllMoveServerRpc();
+                resetAllAttackServerRpc();
             }
         }
         return; 
@@ -391,38 +391,7 @@ public class MGameController : NetworkBehaviour
         endTurnServerRpc(new ServerRpcParams());
     }
 
-    public void resetP1Move()
-    {
-        for (int i = 0; i < p1.transform.childCount; i++)
-        {
-            p1Stats[i].resetMove();
-        }
-    }
-
-    public void resetP1Attack()
-    {
-        for (int i = 0; i < p1.transform.childCount; i++)
-        {
-            p1Stats[i].setAttack(true);
-        }
-    }
-
-    public void resetP2Move()
-    {
-        for (int i = 0; i < p2.transform.childCount; i++)
-        {
-            p2Stats[i].resetMove();
-        }
-    }
-
-    public void resetP2Attack()
-    {
-        for (int i = 0; i < p2.transform.childCount; i++)
-        {
-            p2Stats[i].setAttack(true);
-        }
-    }
-
+    
     [ServerRpc(RequireOwnership = false)]
     public void deselectTargetServerRpc(ServerRpcParams serverRpcParams)
     {
@@ -891,6 +860,7 @@ public class MGameController : NetworkBehaviour
             if (vectorPath != null)
             {
                 clickLock = 1;
+                passClickLockClientRpc(1);
                 StartCoroutine(movePathServer(vectorPath, serverRpcParams));
                 pathfinding.resetCollision();
             }
@@ -915,6 +885,8 @@ public class MGameController : NetworkBehaviour
             if (vectorPath != null)
             {
                 clickLock = 2; 
+                passClickLockClientRpc(2);
+
                 StartCoroutine(movePathServer(vectorPath, serverRpcParams));
                 pathfinding.resetCollision();
             }
@@ -938,6 +910,8 @@ public class MGameController : NetworkBehaviour
         {
             moveActive = false;
             clickLock = 1; 
+            passClickLockClientRpc(1);
+
             // stop player from ending turn during movement
             changeMode(gameMode.MenuMode);
 
@@ -946,7 +920,7 @@ public class MGameController : NetworkBehaviour
                 p1Targeted.transform.position = new Vector3(vectorPath[i].x, vectorPath[i].y, 0);
                 copyMoveClientRpc(p1Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
                 p1TargetedStats.movLeft--;
-                passStatsClientRpc(p1Targeted.name, p1TargetedStats.movLeft);
+                passMovStatClientRpc(p1Targeted.name, p1TargetedStats.movLeft,p1TargetedStats.baseMOV);
                 //hideArea();
                 //showArea(currTargeted);
                 P1updateCharInfo();
@@ -956,6 +930,8 @@ public class MGameController : NetworkBehaviour
 
             changeMode(gameMode.MapMode);
             clickLock = 0;
+            passClickLockClientRpc(0);
+
             moveActiveServerRpc(false);
             P1openContextMenuClientRpc(p1Targeted.transform.position);
         }
@@ -964,6 +940,8 @@ public class MGameController : NetworkBehaviour
         {
             moveActive = false;
             clickLock = 2; 
+            passClickLockClientRpc(2);
+
             // stop player from ending turn during movement
             changeMode(gameMode.MenuMode);
 
@@ -972,7 +950,7 @@ public class MGameController : NetworkBehaviour
                 p2Targeted.transform.position = new Vector3(vectorPath[i].x, vectorPath[i].y, 0);
                 copyMoveClientRpc(p2Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
                 p2TargetedStats.movLeft--;
-                passStatsClientRpc(p2Targeted.name, p2TargetedStats.movLeft);
+                passMovStatClientRpc(p2Targeted.name, p2TargetedStats.movLeft,p2TargetedStats.baseMOV);
                 //hideArea();
                 //showArea(currTargeted);
                 P2updateCharInfo();
@@ -981,6 +959,8 @@ public class MGameController : NetworkBehaviour
 
             changeMode(gameMode.MapMode);
             clickLock = 0;
+            passClickLockClientRpc(0);
+
             moveActiveServerRpc(false);
             P2openContextMenuClientRpc(p2Targeted.transform.position);
         }
@@ -1023,14 +1003,6 @@ public class MGameController : NetworkBehaviour
         currTurnMode = newTurnMode; 
     }
 
-    [ClientRpc]
-    public void passStatsClientRpc(string name, int movleft)
-    {
-        GameObject targetUnit = GameObject.Find(name);
-        Character targetStats = targetUnit.GetComponent<Character>();
-        targetStats.movLeft = movleft;
-    }
-    
     public bool unitHere(Vector3Int pos)
     {
         for (int i = 0; i < p1.transform.childCount; i++)
@@ -1050,4 +1022,101 @@ public class MGameController : NetworkBehaviour
 
         return false; 
     }
+    [ServerRpc(RequireOwnership = false)]
+    public void resetAllMoveServerRpc()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            p1Stats[i].resetMove();
+            p2Stats[i].resetMove();
+            passMovStatClientRpc(p1Stats[i].name,p1Stats[i].movLeft,p1Stats[i].baseMOV);
+            passMovStatClientRpc(p2Stats[i].name,p2Stats[i].movLeft,p2Stats[i].baseMOV);
+
+        }
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void resetAllAttackServerRpc()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            p1Stats[i].setAttack(true);
+            p2Stats[i].setAttack(true);
+            passAtkStatClientRpc(p1Stats[i].name,p1Stats[i].getCanAttack());
+            passAtkStatClientRpc(p2Stats[i].name,p2Stats[i].getCanAttack());
+
+        }
+    }
+    
+    
+    [ClientRpc]
+    public void passMovStatClientRpc(string name, int movleft, int mov)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.movLeft = movleft;
+        targetStats.baseMOV = mov;
+
+    }
+    
+        
+    [ClientRpc]
+    public void passAtkStatClientRpc(string name, bool canAttack)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.setAttack(canAttack);
+
+    }
+    
+    [ClientRpc]
+    public void passHpStatClientRpc(string name, int hpleft, int hp)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.hpLeft = hpleft;
+        targetStats.baseHP = hp;
+
+    }
+  
+
+
+
+    
+
+ 
+    /*
+    public void resetP1Move()
+    {
+        for (int i = 0; i < p1.transform.childCount; i++)
+        {
+            p1Stats[i].resetMove();
+        }
+    }
+
+    public void resetP1Attack()
+    {
+        for (int i = 0; i < p1.transform.childCount; i++)
+        {
+            p1Stats[i].setAttack(true);
+        }
+    }
+
+    public void resetP2Move()
+    {
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            p2Stats[i].resetMove();
+        }
+    }
+
+    public void resetP2Attack()
+    {
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            p2Stats[i].setAttack(true);
+        }
+    }
+    */
+
 }
+
