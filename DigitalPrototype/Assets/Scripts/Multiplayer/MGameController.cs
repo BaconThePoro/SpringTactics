@@ -191,17 +191,104 @@ public class MGameController : NetworkBehaviour
             Vector3Int mousePos = GetMousePosition();
             mousePos = new Vector3Int(mousePos.x, mousePos.y, 0);
 
+            if (attackActive == true)
+            {
+                validateAttackServerRpc(mousePos, new ServerRpcParams());
+            }
+
             if (moveActive == true)
             {
                 validatePathServerRpc(mousePos, new ServerRpcParams());
                 return;
             }
-            
-            // checking if an ally or enemy was clicked
             clickedCharServerRpc(mousePos, new ServerRpcParams());
+
+            
         }
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void validateAttackServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
+    {
+        GameObject target = null;
+        
+        for (int i = 0; i < p1Units.Length; i++)
+        {
+            if (mousePos == p1Units[i].transform.position && p1Stats[i].getIsDead() == false)
+            {
+                if (currTurnMode == turnMode.Player1Turn)
+                {
+                    return;
+                }
+                else
+                {
+                     target = p1Units[i];
+                }
+            }
+        }
+        for (int i = 0; i < p2Units.Length; i++)
+        {
+            if (mousePos == p2Units[i].transform.position && p2Stats[i].getIsDead() == false)
+            {
+                if (currTurnMode == turnMode.Player2Turn)
+                {
+                    return;
+                }
+                else
+                { 
+                     target = p2Units[i];
+                }
+            }
+        }
+        if ((int)serverRpcParams.Receive.SenderClientId == 1)
+        { 
+            if (p1TargetedStats.getCanAttack() == true && inAttackRange(mousePos, p1Targeted)) 
+            {
+                //call begin battle
+                return; 
+            }
+
+        }
+        else if ((int)serverRpcParams.Receive.SenderClientId == 2)
+        {
+            if (p2TargetedStats.getCanAttack() == true && inAttackRange(mousePos, p2Targeted))
+            {
+                //call begin battle
+                return;
+
+            }
+        }
+    }
+
     
+    public void startBattle()
+    {
+        Debug.Log("Kobe Says Hi");
+    }
+    
+
+    public bool inAttackRange(Vector3Int mousePos, GameObject unit)
+    {
+        Character unitStats = unit.GetComponent<Character>();
+
+        // 1 Range
+        if (unitStats.getAttackRange() == 1)
+        {
+            Vector3Int distance = mousePos - Vector3Int.FloorToInt(unit.transform.position);
+            if ((Mathf.Abs(distance.x) == 1 && distance.y == 0) || (distance.x == 0 && Mathf.Abs(distance.y) == 1))
+                return true;
+        }
+        // 2 Range
+        else if (unitStats.getAttackRange() == 2)
+        {
+            Vector3Int distance = mousePos - Vector3Int.FloorToInt(unit.transform.position);
+            if ((Mathf.Abs(distance.x) <= 2 && distance.y == 0) || (distance.x == 0 && Mathf.Abs(distance.y) <= 2) || (Mathf.Abs(distance.x) == 1 && Mathf.Abs(distance.y) == 1)) 
+                return true;
+        }
+
+        return false; 
+    }
+
     //pass click lock varibale to clients and 
     [ClientRpc]
     public void passClickLockClientRpc(int clocklock)
@@ -489,6 +576,8 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        attackAreas[0].gameObject.SetActive(false);
+        attackAreas[0].gameObject.SetActive(false);
         
         p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p1Targeted = null;
@@ -839,6 +928,58 @@ public class MGameController : NetworkBehaviour
         Debug.Log("move button pressed");
         moveActiveServerRpc(true);
         highlightMove();
+    }
+
+    public void attackButtonPressed()
+    {
+        attackActiveServerRpc(true);
+        highlightAttack();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void attackActiveServerRpc(bool cond)
+    {
+        attackActive = cond;
+        
+    }
+
+    public void highlightAttack()
+    {
+        
+        attackActive = true;
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1TargetedStats.getAttackRange() == 1)
+            {
+                attackAreas[0].gameObject.SetActive(true);
+                attackAreas[0].transform.position = p1Targeted.transform.position;
+            }
+            else
+            {
+                attackAreas[0].gameObject.SetActive(true);
+                attackAreas[0].transform.position = p1Targeted.transform.position; 
+                attackAreas[1].gameObject.SetActive(true);
+                attackAreas[1].transform.position = p1Targeted.transform.position; 
+            }
+            contextMenu.SetActive(false);
+        }
+        else if(NetworkManager.Singleton.LocalClientId==2)
+        {
+            if (p2TargetedStats.getAttackRange() == 1)
+            {
+                attackAreas[0].gameObject.SetActive(true);
+                attackAreas[0].transform.position = p2Targeted.transform.position;
+            }
+            else
+            {
+                attackAreas[0].gameObject.SetActive(true);
+                attackAreas[0].transform.position = p2Targeted.transform.position; 
+                attackAreas[1].gameObject.SetActive(true);
+                attackAreas[1].transform.position = p2Targeted.transform.position; 
+                
+            }
+            contextMenu.SetActive(false);
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]
