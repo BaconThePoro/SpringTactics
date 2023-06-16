@@ -14,7 +14,7 @@ public class MGameController : NetworkBehaviour
     public enum turnMode { Player1Turn, Player2Turn };
     private turnMode currTurnMode;
 
-    // enum for what the game is currently doing/displayhing, a menu, the map, or a battle. 
+    // enum for what the game is currently doing/displaying, a menu, the map, or a battle. 
     public enum gameMode { MenuMode, MapMode, BattleMode };
     private gameMode currGameMode;
 
@@ -65,6 +65,19 @@ public class MGameController : NetworkBehaviour
     private TMPro.TextMeshProUGUI resNUM = null;
     private TMPro.TextMeshProUGUI movNUM = null;
     private TMPro.TextMeshProUGUI movLeftNUM = null;
+    // right panel 
+    public GameObject charInfoPanelR = null; 
+    private GameObject RmovLeftTXT = null;
+    private GameObject RmovLeftNUMObj = null;
+    private TMPro.TextMeshProUGUI RcharNameTXT = null;
+    private TMPro.TextMeshProUGUI RhpNUM = null;
+    private TMPro.TextMeshProUGUI RstrNUM = null;
+    private TMPro.TextMeshProUGUI RmagNUM = null;
+    private TMPro.TextMeshProUGUI RspdNUM = null;
+    private TMPro.TextMeshProUGUI RdefNUM = null;
+    private TMPro.TextMeshProUGUI RresNUM = null;
+    private TMPro.TextMeshProUGUI RmovNUM = null;
+    private TMPro.TextMeshProUGUI RmovLeftNUM = null;
     
     //Movement Area Squares 
     private bool moveActive = false;
@@ -77,8 +90,36 @@ public class MGameController : NetworkBehaviour
     public Tilemap collisionMap = null;
     private Tilemap overlayMap = null;
     public Tile moveTile = null;
-    private int clickLock = 0; // 0 = no blocking, 1 = block player 1, 2 = block player 2
+    private int clickLock = 0; // 0 = no blocking, 1 = block player 1, 2 = block player 2, 3 = block both
     
+    // Battle stuff
+    private enum direction { left, right, up, down };
+    private Vector3 leftBattlePos1 = new Vector3(-1.5f, 0, -1);
+    private Vector3 rightBattlePos1 = new Vector3(1.5f, 0, -1);
+    private Vector3 leftBattlePos2 = new Vector3(-2.5f, 0, -1);
+    private Vector3 rightBattlePos2 = new Vector3(2.5f, 0, -1);
+    private Vector3 camBattlePos = new Vector3(0, 1.25f, -50);
+    private float camBattleSize = 2;
+    private Quaternion leftBattleQua = new Quaternion();
+    private Quaternion rightBattleQua = new Quaternion(0, 180, 0, 1);
+    private Vector3 savedPosLeft;
+    private Vector3 savedPosRight;
+    private Vector3 savedPosCam;
+    private Quaternion savedQuaLeft;
+    private Quaternion savedQuaRight;
+    private float savedCamSize;
+    private float inbetweenAttackDelay = 0f;
+    private float animationDuration = 0.3f;
+    private Vector3 damageTextOffset = new Vector3(0, 0.8f, 0);
+    
+    // UI stuff
+    public GameObject turnPanel = null;
+    public GameObject gearNumPanel = null;
+    public GameObject settingsPanel = null; 
+    public GameObject Mapmode = null;
+    public GameObject Battlemode = null;
+    public GameObject mainCameraObj = null;
+    private Camera mainCamera = null;
     
     void Start()
     {
@@ -174,10 +215,10 @@ public class MGameController : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            if (NetworkManager.Singleton.LocalClientId == 1 && clickLock == 1)
+            if (NetworkManager.Singleton.LocalClientId == 1 && (clickLock == 1 || clickLock == 3))
                 return;
             
-            if (NetworkManager.Singleton.LocalClientId == 2 && clickLock == 2)
+            if (NetworkManager.Singleton.LocalClientId == 2 && (clickLock == 2 || clickLock == 3))
                 return;
             
             // if over UI ignore
@@ -196,14 +237,13 @@ public class MGameController : NetworkBehaviour
                 validateAttackServerRpc(mousePos, new ServerRpcParams());
             }
 
-            if (moveActive == true)
+            else if (moveActive == true)
             {
                 validatePathServerRpc(mousePos, new ServerRpcParams());
                 return;
             }
-            clickedCharServerRpc(mousePos, new ServerRpcParams());
-
             
+            clickedCharServerRpc(mousePos, new ServerRpcParams());
         }
     }
 
@@ -240,11 +280,17 @@ public class MGameController : NetworkBehaviour
                 }
             }
         }
+
+        if (target == null)
+        {
+            return;
+        }
+        
         if ((int)serverRpcParams.Receive.SenderClientId == 1)
         { 
             if (p1TargetedStats.getCanAttack() == true && inAttackRange(mousePos, p1Targeted)) 
             {
-                //call begin battle
+                startBattle(p1Targeted.gameObject, target, serverRpcParams);
                 return; 
             }
 
@@ -253,17 +299,208 @@ public class MGameController : NetworkBehaviour
         {
             if (p2TargetedStats.getCanAttack() == true && inAttackRange(mousePos, p2Targeted))
             {
-                //call begin battle
+                startBattle(p2Targeted.gameObject, target, serverRpcParams);
                 return;
-
             }
         }
     }
 
     
-    public void startBattle()
+    public void startBattle(GameObject ally, GameObject enemy, ServerRpcParams serverRpcParams)
     {
-        Debug.Log("Kobe Says Hi");
+        Debug.Log("Starting battle");
+        attackActive = false;
+        clickLock = 3;
+        passClickLockClientRpc(clickLock);
+
+        // can only fight once per turn, reduce movement to 0
+        if (serverRpcParams.Receive.SenderClientId == 1)
+        {
+            p1TargetedStats.movLeft = 0;
+            passMovStatClientRpc(p1Targeted.name, p1TargetedStats.movLeft, p1TargetedStats.baseMOV);
+        }
+        else if (serverRpcParams.Receive.SenderClientId == 2)
+        {
+            p2TargetedStats.movLeft = 0;
+            passMovStatClientRpc(p2Targeted.name, p2TargetedStats.movLeft, p2TargetedStats.baseMOV);
+        }
+        
+        changeMode(gameMode.BattleMode);
+        
+        // figure out which way to face (ally on left or right)
+        direction battleDirection = facingWhere(ally.transform.position, enemy.transform.position);
+
+        // calculate range of this battle
+        int battleRange = 0;
+        Vector3 distance = enemy.transform.position - ally.transform.position;
+        if ((Mathf.Abs(distance.x) == 1 && Mathf.Abs(distance.y) == 0)
+            || (Mathf.Abs(distance.x) == 0 && Mathf.Abs(distance.y) == 1))
+        {
+            battleRange = 1;
+        }
+        else if ((Mathf.Abs(distance.x) == 1 && Mathf.Abs(distance.y) == 1)
+                 || (Mathf.Abs(distance.x) == 2 && Mathf.Abs(distance.y) == 0)
+                 || (Mathf.Abs(distance.x) == 0 && Mathf.Abs(distance.y) == 2))
+        {
+            battleRange = 2;
+        }
+
+        // if facing to the right or down then put ally on the left 
+        if (battleDirection == direction.right || battleDirection == direction.down)
+            StartCoroutine(continueBattle(ally, enemy, true, battleRange));
+        // else put ally on the right
+        else
+            StartCoroutine(continueBattle(enemy, ally, true, battleRange));
+    }
+
+    public IEnumerator continueBattle(GameObject leftChar, GameObject rightChar, bool playerTurn, int battleRange)
+    {
+        //Debug.Log("starting battle");
+        Character leftStats = leftChar.GetComponent<Character>();
+        Character rightStats = rightChar.GetComponent<Character>();
+        // go to battlemode
+        turnPanel.SetActive(false);
+        gearNumPanel.SetActive(false);
+        settingsPanel.SetActive(false);
+        deselectTargetServerRpc(new ServerRpcParams()); // might need to deselect both
+        deactivateAllChildren();
+        Mapmode.SetActive(false);
+        Battlemode.SetActive(true);
+        savedCamSize = mainCamera.orthographicSize;
+        mainCamera.orthographicSize = camBattleSize;
+        charInfoPanel.SetActive(true);
+        charInfoPanelR.SetActive(true);
+        updateBattleStats(leftStats, rightStats);
+        // reactivate participants
+        leftChar.SetActive(true);
+        rightChar.SetActive(true);
+        // save position and rotation for both participants (and camera) before we move them
+        savedPosLeft = leftChar.transform.position;
+        savedPosRight = rightChar.transform.position;
+        savedPosCam = mainCamera.transform.position;
+        savedQuaLeft = leftChar.transform.rotation;
+        savedQuaRight = rightChar.transform.rotation;
+        // move both participants (and camera) to position for battle
+        if (battleRange == 1)
+        {
+            leftChar.transform.position = leftBattlePos1;
+            rightChar.transform.position = rightBattlePos1;
+        }
+        else if (battleRange == 2)
+        {
+            leftChar.transform.position = leftBattlePos2;
+            rightChar.transform.position = rightBattlePos2;
+        }
+        mainCamera.transform.position = camBattlePos;
+        leftChar.transform.rotation = leftBattleQua;
+        rightChar.transform.rotation = rightBattleQua;
+
+        // delay for 1.5s so user can see before battle starts
+        yield return new WaitForSeconds(inbetweenAttackDelay * 3);
+
+        // Determine who should attack first
+        GameObject firstAttacker;
+        Character firstStats;
+        GameObject secondAttacker;
+        Character secondStats;
+
+        // left is faster
+        if (leftStats.SPD > rightStats.SPD)
+        {
+            firstAttacker = leftChar;
+            secondAttacker = rightChar;
+            firstStats = leftStats;
+            secondStats = rightStats;
+        }
+        // speed tie
+        else if (leftStats.SPD == rightStats.SPD)
+        {
+            // coin flip who goes first
+            if (UnityEngine.Random.value >= 0.5)
+            {
+                firstAttacker = leftChar;
+                secondAttacker = rightChar;
+                firstStats = leftStats;
+                secondStats = rightStats;
+            }
+            else
+            {
+                firstAttacker = rightChar;
+                secondAttacker = leftChar;
+                firstStats = rightStats;
+                secondStats = leftStats;
+            }
+        }
+        // right is faster
+        else
+        {
+            firstAttacker = rightChar;
+            secondAttacker = leftChar;
+            firstStats = rightStats;
+            secondStats = leftStats;
+        }
+
+        // first attacks
+        if (firstStats.getAttackRange() >= battleRange)
+        {
+            yield return StartCoroutine(LerpPosition(firstAttacker, firstAttacker.transform.position + firstAttacker.transform.right, animationDuration));
+            yield return new WaitForSeconds(inbetweenAttackDelay);
+            yield return StartCoroutine(updateDamageTXT(secondAttacker, Attack(firstStats, secondStats))); // person taking damage and damage value
+            updateBattleStats(leftStats, rightStats);
+        }
+ 
+        // delay
+        yield return new WaitForSeconds(inbetweenAttackDelay);
+
+        // second attack
+        if (secondStats.getAttackRange() >= battleRange)
+        {
+            yield return StartCoroutine(LerpPosition(secondAttacker, secondAttacker.transform.position + secondAttacker.transform.right, animationDuration));
+            yield return new WaitForSeconds(inbetweenAttackDelay);
+            yield return StartCoroutine(updateDamageTXT(firstAttacker, Attack(secondStats, firstStats))); // person taking damage and damage value
+            updateBattleStats(leftStats, rightStats);
+        }
+
+        // delay again for 1.5s so user can see result of battle before leaving battlemode
+        yield return new WaitForSeconds(inbetweenAttackDelay * 4);   
+        
+        // return them to prior positions
+        leftChar.transform.position = savedPosLeft;
+        rightChar.transform.position = savedPosRight;
+        mainCamera.transform.position = savedPosCam;
+        mainCamera.orthographicSize = savedCamSize;
+        leftChar.transform.rotation = savedQuaLeft;
+        rightChar.transform.rotation = savedQuaRight;
+        // return to mapmode
+        charInfoPanel.SetActive(false);
+        charInfoPanelR.SetActive(false);
+        turnPanel.SetActive(true);
+        gearNumPanel.SetActive(true);
+        settingsPanel.SetActive(true);
+        activateAllChildren();
+        Mapmode.SetActive(true);
+        Battlemode.SetActive(false);
+        changeMode(gameMode.MapMode); 
+        // return to either player or enemy turn
+        if (playerTurn == true)
+        {
+            //playerController.ourTurn = true;
+            changeTurn(turnMode.PlayerTurn);
+            leftStats.setAttack(false);
+            rightStats.setAttack(false);
+        }
+        else
+        {
+            //playerController.ourTurn = false;
+        }
+
+        // see if player gets some gears for killing something
+        if (firstStats.getIsDead() == true && firstStats.getIsEnemy() == true
+            || secondStats.getIsDead() == true && secondStats.getIsEnemy() == true)
+        {
+            playerController.giveGearNum(4);
+            StartCoroutine(plusAnimation());
+        }
     }
     
 
@@ -488,16 +725,17 @@ public class MGameController : NetworkBehaviour
                 return;
 
             p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
-            //moveActive = false;
-            //attackActive = false;
+            moveActive = false;
+            attackActive = false;
             if (p1Targeted == null)
                 return;      
             p1Targeted = null;
             p1TargetedStats = null;
             //charInfoPanel.gameObject.SetActive(false);
-            //hideArea();
+            moveAreas[0].gameObject.SetActive(false);
+            moveAreas[1].gameObject.SetActive(false);
             //contextMenu.SetActive(false);
-            //overlapGrid.ClearAllTiles();
+            overlayMap.ClearAllTiles();
             p1DeselectClientRpc();
         }
         else
@@ -506,16 +744,17 @@ public class MGameController : NetworkBehaviour
                 return;
 
             p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
-            //moveActive = false;
-            //attackActive = false;
+            moveActive = false;
+            attackActive = false;
             if (p2Targeted == null)
                 return;
             p2Targeted = null;
             p2TargetedStats = null;
             //charInfoPanel.gameObject.SetActive(false);
-            //hideArea();
+            moveAreas[0].gameObject.SetActive(false);
+            moveAreas[1].gameObject.SetActive(false);
             //contextMenu.SetActive(false);
-            //overlapGrid.ClearAllTiles();
+            overlayMap.ClearAllTiles();
             p2DeselectClientRpc();
         }
     }
@@ -566,6 +805,7 @@ public class MGameController : NetworkBehaviour
         p1TargetedStats = p1Targeted.GetComponent<Character>();
         p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
         
+        
     }
 
     [ClientRpc]
@@ -577,13 +817,14 @@ public class MGameController : NetworkBehaviour
             return;
         }
         attackAreas[0].gameObject.SetActive(false);
-        attackAreas[0].gameObject.SetActive(false);
-        
+        attackAreas[1].gameObject.SetActive(false);
         p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p1Targeted = null;
         p1TargetedStats = null;
         contextMenu.SetActive(false);
         overlayMap.ClearAllTiles(); // turn off movement highlighting
+        moveActive = false;
+        attackActive = false;
     }
 
     [ClientRpc]
@@ -609,12 +850,15 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
-        
+        attackAreas[0].gameObject.SetActive(false);
+        attackAreas[1].gameObject.SetActive(false);
         p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p2Targeted = null;
         p2TargetedStats = null;
         contextMenu.SetActive(false);
         overlayMap.ClearAllTiles(); // turn off movement highlighting
+        moveActive = false;
+        attackActive = false;
     }
 
     [ClientRpc]
@@ -925,7 +1169,7 @@ public class MGameController : NetworkBehaviour
     //calls client RPC for move squares 
     public void moveButtonPressed()
     {
-        Debug.Log("move button pressed");
+        //Debug.Log("move button pressed");
         moveActiveServerRpc(true);
         highlightMove();
     }
@@ -940,7 +1184,6 @@ public class MGameController : NetworkBehaviour
     public void attackActiveServerRpc(bool cond)
     {
         attackActive = cond;
-        
     }
 
     public void highlightAttack()
@@ -1218,11 +1461,54 @@ public class MGameController : NetworkBehaviour
         targetStats.baseHP = hp;
 
     }
-  
 
+    [ClientRpc]
+    public void passAttackActiveClientRpc(bool cond)
+    {
+        attackActive = cond; 
+    }
 
+    direction facingWhere(Vector3 allyPos, Vector3 enemyPos)
+    {
+        Vector3 difference = enemyPos - allyPos;
 
-    
+        if (difference.x < 0)
+            return direction.left;
+        else if (difference.x > 0)
+            return direction.right;
+
+        if (difference.y < 0)
+            return direction.down;
+        else if (difference.y > 0)
+            return direction.up;
+
+        Debug.Log("facingWhere() is broke, units somehow standing on top of each other");
+        return direction.left;
+    }
+
+    public void deactivateAllChildren()
+    {
+        for (int i = 0; i < p1.transform.childCount; i++)
+        {
+            p1Units[i].gameObject.SetActive(false);
+        }
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            p2Units[i].gameObject.SetActive(false);
+        }
+    }
+
+    public void activateAllChildren()
+    {
+        for (int i = 0; i < p1.transform.childCount; i++)
+        {
+            p1Units[i].gameObject.SetActive(true);
+        }
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            p2Units[i].gameObject.SetActive(true);
+        }
+    }
 
  
     /*
