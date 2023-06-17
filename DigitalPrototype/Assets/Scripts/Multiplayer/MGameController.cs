@@ -83,7 +83,6 @@ public class MGameController : NetworkBehaviour
     private TMPro.TextMeshProUGUI RmovNUM = null;
     //private TMPro.TextMeshProUGUI RmovLeftNUM = null;
     
-    
     //Movement Area Squares 
     private bool moveActive = false;
     private bool attackActive = false;
@@ -117,9 +116,8 @@ public class MGameController : NetworkBehaviour
     private float animationDuration = 0.3f;
     private Vector3 damageTextOffset = new Vector3(0, 0.8f, 0);
     
-    
     // UI stuff
-    GameObject turnPanel = null;
+    private GameObject turnPanel = null;
     public GameObject gearNumPanel = null;
     public GameObject settingsPanel = null; 
     public GameObject Mapmode = null;
@@ -166,7 +164,7 @@ public class MGameController : NetworkBehaviour
         ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
         
-        //Finding Parents for movment area display
+        //Finding Parents for movement area display
         overlayMap = GameObject.Find("overlayMap").GetComponent<Tilemap>();
         pathfinding = new MPathfinding(17, 11, collisionMap);
         moveAreaParent = GameObject.Find("moveAreas").gameObject;
@@ -174,6 +172,11 @@ public class MGameController : NetworkBehaviour
         turnModeTXT = GameObject.Find("currentTurnTXT").GetComponent<TMPro.TextMeshProUGUI>();
         currGrid = GameObject.Find("Grid").gameObject.GetComponent<Grid>();
 
+        // initializing UI stuff
+        mainCamera = mainCameraObj.GetComponent<Camera>();
+        damageTXT = damageTXTPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>();
+        gearNumPlus = gearNumPanel.transform.GetChild(2).gameObject;
+        
         // initialize p1
         p1 = transform.GetChild(0).gameObject;
         p1Units = new GameObject[p1.transform.childCount];
