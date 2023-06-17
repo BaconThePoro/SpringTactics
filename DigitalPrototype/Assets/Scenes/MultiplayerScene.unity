@@ -58642,7 +58642,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseSPD
-      value: 3000
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseMOV
@@ -62907,7 +62907,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   charName: 
   baseHP: 10
-  baseSTR: 2000
+  baseSTR: 100
   baseMAG: 1
   baseDEF: 1
   baseRES: 1

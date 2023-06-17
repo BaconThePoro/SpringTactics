@@ -31,7 +31,7 @@ public class MGameController : NetworkBehaviour
     public Character.weaponType[] p1weaponsList;
     private GameObject p1Targeted = null;
     private Character p1TargetedStats = null;
-    private int p1gearAmount = 0;
+    private int p1GearAmount = 0;
 
     // p2 stuff
     private GameObject p2;
@@ -42,8 +42,7 @@ public class MGameController : NetworkBehaviour
     public Character.weaponType[] p2weaponsList;
     private GameObject p2Targeted = null;
     private Character p2TargetedStats = null;
-    private int p2gearAmount = 0;
-
+    private int p2GearAmount = 0;
     
     //context Menu buttons/interaction
     public GameObject contextMenu = null;
@@ -230,14 +229,21 @@ public class MGameController : NetworkBehaviour
             i += 1;
         }  
         
-        giveGearNumServerRpc(10,false);
-        giveGearNumServerRpc(10,true);
+        giveGearNum(10,false);
+        giveGearNum(10,true);
         changeTurn(turnMode.Player1Turn);
         changeMode(gameMode.MapMode);
         updateTurnText();
-        
+
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
     }
 
+    private void OnClientConnectedCallback(ulong clientId)
+    {
+        giveGearNum(0,false);
+        giveGearNum(0,true);
+    }
+    
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Mouse0))
@@ -380,6 +386,30 @@ public class MGameController : NetworkBehaviour
             StartCoroutine(continueBattle(enemy, ally, true, battleRange));
     }
 
+    [ClientRpc]
+    private void startBattlemodeClientRpc(string leftName, string rightName, Vector3 lPos, Vector3 rPos)
+    {
+        GameObject leftChar = GameObject.Find(leftName);
+        GameObject rightChar = GameObject.Find(rightName);
+        
+        turnPanel.SetActive(false);
+        gearNumPanel.SetActive(false);
+        settingsPanel.SetActive(false);
+        deactivateAllChildren();
+        Mapmode.SetActive(false);
+        Battlemode.SetActive(true);
+        savedCamSize = mainCamera.orthographicSize;
+        mainCamera.orthographicSize = camBattleSize;
+        charInfoPanel.SetActive(true);
+        charInfoPanelR.SetActive(true);
+        // reactivate participants
+        leftChar.SetActive(true);
+        rightChar.SetActive(true);
+        // copy initial position
+        leftChar.transform.position = lPos;
+        rightChar.transform.position = rPos;
+    }
+
     public IEnumerator continueBattle(GameObject leftChar, GameObject rightChar, bool playerTurn, int battleRange)
     {
         //Debug.Log("starting battle");
@@ -422,6 +452,8 @@ public class MGameController : NetworkBehaviour
         leftChar.transform.rotation = leftBattleQua;
         rightChar.transform.rotation = rightBattleQua;
 
+        startBattlemodeClientRpc(leftChar.name, rightChar.name, leftChar.transform.position, rightChar.transform.position);
+        
         // delay for 1.5s so user can see before battle starts
         yield return new WaitForSeconds(inbetweenAttackDelay * 3);
 
@@ -508,6 +540,10 @@ public class MGameController : NetworkBehaviour
         Mapmode.SetActive(true);
         Battlemode.SetActive(false);
         changeMode(gameMode.MapMode); 
+        
+        leaveBattlemodClientRpc(leftChar.name, rightChar.name, leftChar.transform.position, rightChar.transform.position, 
+            mainCamera.transform.position, mainCamera.orthographicSize);
+        
         // return to either player or enemy turn
         if (playerTurn == true)
         {
@@ -516,6 +552,8 @@ public class MGameController : NetworkBehaviour
             passClickLockClientRpc(clickLock);
             leftStats.setAttack(false);
             rightStats.setAttack(false);
+            passAtkStatClientRpc(leftChar.name, false);
+            passAtkStatClientRpc(rightChar.name, false);
         }
         else
         {
@@ -523,13 +561,15 @@ public class MGameController : NetworkBehaviour
             passClickLockClientRpc(clickLock);
             leftStats.setAttack(false);
             rightStats.setAttack(false);
+            passAtkStatClientRpc(leftChar.name, false);
+            passAtkStatClientRpc(rightChar.name, false);
         }
 
         // see if player gets some gears for killing something
         if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p2.transform) == true
             || secondStats.getIsDead() == true && secondStats.transform.IsChildOf(p2.transform) == true)
         {
-            giveGearNumServerRpc(4, false);
+            giveGearNum(4, false);
             StartCoroutine(plusAnimation());
         }
         
@@ -537,12 +577,30 @@ public class MGameController : NetworkBehaviour
         if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p1.transform) == true
             || secondStats.getIsDead() == true && secondStats.transform.IsChildOf(p1.transform) == true)
         {
-            giveGearNumServerRpc(4, true);
+            giveGearNum(4, true);
             StartCoroutine(plusAnimation());
         }
-
+    }
+    
+    [ClientRpc]
+    private void leaveBattlemodClientRpc(string leftName, string rightName, Vector3 lPos, Vector3 rPos, Vector3 camPos, float camSize)
+    {
+        GameObject leftChar = GameObject.Find(leftName);
+        GameObject rightChar = GameObject.Find(rightName);
         
+        leftChar.transform.position = lPos;
+        rightChar.transform.position = rPos;
+        mainCamera.transform.position = camPos;
+        mainCamera.orthographicSize = camSize;
         
+        charInfoPanel.SetActive(false);
+        charInfoPanelR.SetActive(false);
+        turnPanel.SetActive(true);
+        gearNumPanel.SetActive(true);
+        settingsPanel.SetActive(true);
+        activateAllChildren();
+        Mapmode.SetActive(true);
+        Battlemode.SetActive(false);
     }
     
 
@@ -1506,19 +1564,12 @@ public class MGameController : NetworkBehaviour
     
      
     [ClientRpc]
-    public void passGearNumberClientRpc(int gearNum, bool player)
+    public void passGearNumberClientRpc(int p1G, int p2G)
     {
-        if (!player)
-        {
-            p1gearAmount = gearNum;
-        }
-        else
-        {
-            p2gearAmount = gearNum;
-
-        }
-  
+        p1GearAmount = p1G;
+        p2GearAmount = p2G;
     }
+    
     
 
     [ClientRpc]
@@ -1570,6 +1621,37 @@ public class MGameController : NetworkBehaviour
     }
     public void updateBattleStats(Character leftStats, Character rightStats)
     {
+        charNameTXT.text = "Name: " + leftStats.charName;
+        hpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
+        strNUM.text = "" + leftStats.STR;
+        magNUM.text = "" + leftStats.MAG;
+        defNUM.text = "" + leftStats.DEF;
+        resNUM.text = "" + leftStats.RES;
+        spdNUM.text = "" + leftStats.SPD;
+        movNUM.text = "" + leftStats.MOV; 
+        movLeftTXT.SetActive(false);
+        movLeftNUMObj.SetActive(false);
+
+        RcharNameTXT.text = "Name: " + rightStats.charName;
+        RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
+        RstrNUM.text = "" + rightStats.STR;
+        RmagNUM.text = "" + rightStats.MAG;
+        RdefNUM.text = "" + rightStats.DEF;
+        RresNUM.text = "" + rightStats.RES;
+        RspdNUM.text = "" + rightStats.SPD;
+        RmovNUM.text = "" + rightStats.MOV;
+        RmovLeftTXT.SetActive(false);
+        RmovLeftNUMObj.SetActive(false);
+        
+        passBattleStatsClientRpc(leftStats.name, rightStats.name);
+    }
+
+    [ClientRpc]
+    private void passBattleStatsClientRpc(string lName, string rName)
+    {
+        Character leftStats = GameObject.Find(lName).GetComponent<Character>();
+        Character rightStats = GameObject.Find(rName).GetComponent<Character>();
+        
         charNameTXT.text = "Name: " + leftStats.charName;
         hpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
         strNUM.text = "" + leftStats.STR;
@@ -1718,53 +1800,34 @@ public class MGameController : NetworkBehaviour
         return true;
     }
     
-    [ServerRpc(RequireOwnership = false)]
-
-    public void giveGearNumServerRpc(int i, bool player)
+    public void giveGearNum(int amount, bool player)
     {
         if (!player)
         {
-            p1gearAmount = p1gearAmount + i;
-            updateGearNumPanelClientRpc(player);
-            passGearNumberClientRpc(p1gearAmount,player);
+            p1GearAmount = p1GearAmount + amount;
         }
         else
         {
-            p2gearAmount = p2gearAmount + i;
-            updateGearNumPanelClientRpc(player);
-            passGearNumberClientRpc(p2gearAmount,player);
-
+            p2GearAmount = p2GearAmount + amount;
         }
-  
+        
+        passGearNumberClientRpc(p1GearAmount, p2GearAmount);
+        updateGearNumPanelClientRpc();
     }
     
     [ClientRpc]
-    public void updateGearNumPanelClientRpc(bool player)
+    public void updateGearNumPanelClientRpc()
     {
-        if (!player)
+        if (NetworkManager.Singleton.LocalClientId == 1)
         {
-            gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + getGearNum(player);
+            gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + p1GearAmount;
         }
-        else
+        else if (NetworkManager.Singleton.LocalClientId == 2)
         {
-            
-            gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + getGearNum(player);
+            gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + p2GearAmount;
         }
     }
 
-    public int getGearNum(bool player)
-    {
-        if (!player)
-        {
-            return p1gearAmount;
-        }
-        else
-        {
-            return p2gearAmount;
-
-        }
-    }
-    
     public IEnumerator plusAnimation()
     {
         float time = 0;
@@ -1803,7 +1866,5 @@ public class MGameController : NetworkBehaviour
     {
         gearNumPlus.SetActive(toogle);
     }
-
-    
 }
 
