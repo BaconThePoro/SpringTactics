@@ -81,7 +81,8 @@ public class MGameController : NetworkBehaviour
     private TMPro.TextMeshProUGUI RdefNUM = null;
     private TMPro.TextMeshProUGUI RresNUM = null;
     private TMPro.TextMeshProUGUI RmovNUM = null;
-    private TMPro.TextMeshProUGUI RmovLeftNUM = null;
+    //private TMPro.TextMeshProUGUI RmovLeftNUM = null;
+    
     
     //Movement Area Squares 
     private bool moveActive = false;
@@ -131,7 +132,6 @@ public class MGameController : NetworkBehaviour
 
     void Start()
     {
-
         //Getting all context menu buttons
         moveButton = contextMenu.transform.GetChild(0).GetComponent<Button>();
         attackButton = contextMenu.transform.GetChild(1).GetComponent<Button>();
@@ -151,6 +151,20 @@ public class MGameController : NetworkBehaviour
         movNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
         movLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
         movLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
+        
+        //For Right Char Info Panel
+        RcharNameTXT = charInfoPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
+        RmovLeftTXT = charInfoPanel.transform.GetChild(9).gameObject;
+        RhpNUM = charInfoPanel.transform.GetChild(10).GetComponent<TMPro.TextMeshProUGUI>();
+        RstrNUM = charInfoPanel.transform.GetChild(11).GetComponent<TMPro.TextMeshProUGUI>();
+        RmagNUM = charInfoPanel.transform.GetChild(12).GetComponent<TMPro.TextMeshProUGUI>();
+        RspdNUM = charInfoPanel.transform.GetChild(13).GetComponent<TMPro.TextMeshProUGUI>();
+        RdefNUM = charInfoPanel.transform.GetChild(14).GetComponent<TMPro.TextMeshProUGUI>();
+        RresNUM = charInfoPanel.transform.GetChild(15).GetComponent<TMPro.TextMeshProUGUI>();
+        RmovNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
+        RmovLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
+        ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
+        
         
         //Finding Parents for movment area display
         overlayMap = GameObject.Find("overlayMap").GetComponent<Tilemap>();
@@ -1682,19 +1696,27 @@ public class MGameController : NetworkBehaviour
         if (!player)
         {
             p1gearAmount = p1gearAmount + i;
-            updateGearNumPanel();
+            updateGearNumPanel(player);
         }
         else
         {
             p2gearAmount = p2gearAmount + i;
-            updateGearNumPanel();
+            updateGearNumPanel(player);
         }
   
     }
     
-    public void updateGearNumPanel()
+    public void updateGearNumPanel(bool player)
     {
-        gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + getGearNum();
+        if (!player)
+        {
+            gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + getGearNum(player);
+        }
+        else
+        {
+            
+            gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + getGearNum(player);
+        }
     }
 
     public int getGearNum(bool player)
