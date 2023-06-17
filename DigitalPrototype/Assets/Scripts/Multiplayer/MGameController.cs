@@ -117,7 +117,7 @@ public class MGameController : NetworkBehaviour
     private Vector3 damageTextOffset = new Vector3(0, 0.8f, 0);
     
     // UI stuff
-    private GameObject turnPanel = null;
+    public GameObject turnPanel = null;
     public GameObject gearNumPanel = null;
     public GameObject settingsPanel = null; 
     public GameObject Mapmode = null;
@@ -230,10 +230,12 @@ public class MGameController : NetworkBehaviour
             i += 1;
         }  
         
-
+        giveGearNumServerRpc(10,false);
+        giveGearNumServerRpc(10,true);
         changeTurn(turnMode.Player1Turn);
         changeMode(gameMode.MapMode);
         updateTurnText();
+        
     }
 
     void Update()
@@ -511,12 +513,14 @@ public class MGameController : NetworkBehaviour
         {
 
             clickLock = 0;
+            passClickLockClientRpc(clickLock);
             leftStats.setAttack(false);
             rightStats.setAttack(false);
         }
         else
         {
             clickLock = 0;
+            passClickLockClientRpc(clickLock);
             leftStats.setAttack(false);
             rightStats.setAttack(false);
         }
@@ -525,7 +529,7 @@ public class MGameController : NetworkBehaviour
         if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p2.transform) == true
             || secondStats.getIsDead() == true && secondStats.transform.IsChildOf(p2.transform) == true)
         {
-            giveGearNum(4, false);
+            giveGearNumServerRpc(4, false);
             StartCoroutine(plusAnimation());
         }
         
@@ -533,7 +537,7 @@ public class MGameController : NetworkBehaviour
         if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p1.transform) == true
             || secondStats.getIsDead() == true && secondStats.transform.IsChildOf(p1.transform) == true)
         {
-            giveGearNum(4, true);
+            giveGearNumServerRpc(4, true);
             StartCoroutine(plusAnimation());
         }
 
@@ -1499,6 +1503,23 @@ public class MGameController : NetworkBehaviour
         targetStats.baseHP = hp;
 
     }
+    
+     
+    [ClientRpc]
+    public void passGearNumberClientRpc(int gearNum, bool player)
+    {
+        if (!player)
+        {
+            p1gearAmount = gearNum;
+        }
+        else
+        {
+            p2gearAmount = gearNum;
+
+        }
+  
+    }
+    
 
     [ClientRpc]
     public void passAttackActiveClientRpc(bool cond)
@@ -1644,6 +1665,7 @@ public class MGameController : NetworkBehaviour
                 damageMinusDefense = 0;
             
             damageTaker.takeDamage(damageMinusDefense);
+            passHpStatClientRpc(damageTaker.name,damageTaker.hpLeft,damageTaker.baseHP);
         }
         // attacker has magic weapon
         else
@@ -1654,6 +1676,8 @@ public class MGameController : NetworkBehaviour
                 damageMinusDefense = 0;
 
             damageTaker.takeDamage(damageMinusDefense);
+            passHpStatClientRpc(damageTaker.name,damageTaker.hpLeft,damageTaker.baseHP);
+
         }
 
         // all player characters dead
@@ -1694,22 +1718,28 @@ public class MGameController : NetworkBehaviour
         return true;
     }
     
-    public void giveGearNum(int i, bool player)
+    [ServerRpc(RequireOwnership = false)]
+
+    public void giveGearNumServerRpc(int i, bool player)
     {
         if (!player)
         {
             p1gearAmount = p1gearAmount + i;
-            updateGearNumPanel(player);
+            updateGearNumPanelClientRpc(player);
+            passGearNumberClientRpc(p1gearAmount,player);
         }
         else
         {
             p2gearAmount = p2gearAmount + i;
-            updateGearNumPanel(player);
+            updateGearNumPanelClientRpc(player);
+            passGearNumberClientRpc(p2gearAmount,player);
+
         }
   
     }
     
-    public void updateGearNumPanel(bool player)
+    [ClientRpc]
+    public void updateGearNumPanelClientRpc(bool player)
     {
         if (!player)
         {
@@ -1740,13 +1770,14 @@ public class MGameController : NetworkBehaviour
         float time = 0;
         RawImage rI = gearNumPlus.GetComponent<RawImage>();
         Vector3 originalPos = gearNumPlus.transform.position;
-
         gearNumPlus.SetActive(true);
+        togglePlusClientRpc(true);
         while (time <= 0.2f)
         {
             gearNumPlus.transform.position = gearNumPlus.transform.position + new Vector3(0, 0.25f, 0);
             if (time > 0.1f)
                 rI.color = new Color(1, 1, 1, rI.color.a * 0.80f);
+            plusAnimationCLientRpc(  gearNumPlus.transform.position, rI.color);
             yield return new WaitForSeconds(0.01f);
             time = time + Time.deltaTime;
             //Debug.Log("time: " + time);
@@ -1754,9 +1785,24 @@ public class MGameController : NetworkBehaviour
 
         gearNumPlus.transform.position = originalPos;
         rI.color = new Color(1, 1, 1, 1);
+        plusAnimationCLientRpc( gearNumPlus.transform.position, rI.color);
         gearNumPlus.SetActive(false);
+        togglePlusClientRpc(false);
+
     }
 
+    [ClientRpc]
+    public void plusAnimationCLientRpc(Vector3 newPosition, Color newColor)
+    {
+        gearNumPlus.transform.position = newPosition;
+        gearNumPlus.GetComponent<RawImage>().color = newColor;
+    }
+
+    [ClientRpc]
+    public void togglePlusClientRpc(bool toogle)
+    {
+        gearNumPlus.SetActive(toogle);
+    }
 
     
 }

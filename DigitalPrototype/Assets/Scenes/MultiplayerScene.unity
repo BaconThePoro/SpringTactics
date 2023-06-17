@@ -58481,9 +58481,21 @@ PrefabInstance:
       value: 596672722
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: Mapmode
+      value: 
+      objectReference: {fileID: 1892938726}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: moveTile
       value: 
       objectReference: {fileID: 11400000, guid: 7efba1c96705d0c46b75d646090792ac, type: 2}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: turnPanel
+      value: 
+      objectReference: {fileID: 17159737}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: Battlemode
+      value: 
+      objectReference: {fileID: 2079111250}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: contextMenu
       value: 
@@ -58493,9 +58505,29 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 691943312}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: gearNumPanel
+      value: 
+      objectReference: {fileID: 1858892939}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: charInfoPanel
       value: 
       objectReference: {fileID: 839432104}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: mainCameraObj
+      value: 
+      objectReference: {fileID: 519420028}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: settingsPanel
+      value: 
+      objectReference: {fileID: 2133959446}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: charInfoPanelR
+      value: 
+      objectReference: {fileID: 1661211777}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: damageTXTPanel
+      value: 
+      objectReference: {fileID: 717396565}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: p1StartPos.Array.size
       value: 2
