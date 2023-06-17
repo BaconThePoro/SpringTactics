@@ -31,6 +31,8 @@ public class MGameController : NetworkBehaviour
     public Character.weaponType[] p1weaponsList;
     private GameObject p1Targeted = null;
     private Character p1TargetedStats = null;
+    private int p1gearAmount = 0;
+
     // p2 stuff
     private GameObject p2;
     private GameObject[] p2Units;
@@ -40,6 +42,8 @@ public class MGameController : NetworkBehaviour
     public Character.weaponType[] p2weaponsList;
     private GameObject p2Targeted = null;
     private Character p2TargetedStats = null;
+    private int p2gearAmount = 0;
+
     
     //context Menu buttons/interaction
     public GameObject contextMenu = null;
@@ -112,15 +116,19 @@ public class MGameController : NetworkBehaviour
     private float animationDuration = 0.3f;
     private Vector3 damageTextOffset = new Vector3(0, 0.8f, 0);
     
+    
     // UI stuff
-    public GameObject turnPanel = null;
+    GameObject turnPanel = null;
     public GameObject gearNumPanel = null;
     public GameObject settingsPanel = null; 
     public GameObject Mapmode = null;
     public GameObject Battlemode = null;
     public GameObject mainCameraObj = null;
     private Camera mainCamera = null;
-    
+    public GameObject damageTXTPanel = null;
+    private TMPro.TextMeshProUGUI damageTXT = null;
+    private GameObject gearNumPlus = null;
+
     void Start()
     {
 
@@ -484,23 +492,36 @@ public class MGameController : NetworkBehaviour
         // return to either player or enemy turn
         if (playerTurn == true)
         {
-            //playerController.ourTurn = true;
-            changeTurn(turnMode.PlayerTurn);
+
+            clickLock = 0;
             leftStats.setAttack(false);
             rightStats.setAttack(false);
         }
         else
         {
-            //playerController.ourTurn = false;
+            clickLock = 0;
+            leftStats.setAttack(false);
+            rightStats.setAttack(false);
         }
 
         // see if player gets some gears for killing something
-        if (firstStats.getIsDead() == true && firstStats.getIsEnemy() == true
-            || secondStats.getIsDead() == true && secondStats.getIsEnemy() == true)
+        if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p2.transform) == true
+            || secondStats.getIsDead() == true && secondStats.transform.IsChildOf(p2.transform) == true)
         {
-            playerController.giveGearNum(4);
+            giveGearNum(4, false);
             StartCoroutine(plusAnimation());
         }
+        
+        // see if player gets some gears for killing something
+        if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p1.transform) == true
+            || secondStats.getIsDead() == true && secondStats.transform.IsChildOf(p1.transform) == true)
+        {
+            giveGearNum(4, true);
+            StartCoroutine(plusAnimation());
+        }
+
+        
+        
     }
     
 
@@ -1509,41 +1530,209 @@ public class MGameController : NetworkBehaviour
             p2Units[i].gameObject.SetActive(true);
         }
     }
-
- 
-    /*
-    public void resetP1Move()
+    public void updateBattleStats(Character leftStats, Character rightStats)
     {
-        for (int i = 0; i < p1.transform.childCount; i++)
+        charNameTXT.text = "Name: " + leftStats.charName;
+        hpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
+        strNUM.text = "" + leftStats.STR;
+        magNUM.text = "" + leftStats.MAG;
+        defNUM.text = "" + leftStats.DEF;
+        resNUM.text = "" + leftStats.RES;
+        spdNUM.text = "" + leftStats.SPD;
+        movNUM.text = "" + leftStats.MOV; 
+        movLeftTXT.SetActive(false);
+        movLeftNUMObj.SetActive(false);
+
+        RcharNameTXT.text = "Name: " + rightStats.charName;
+        RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
+        RstrNUM.text = "" + rightStats.STR;
+        RmagNUM.text = "" + rightStats.MAG;
+        RdefNUM.text = "" + rightStats.DEF;
+        RresNUM.text = "" + rightStats.RES;
+        RspdNUM.text = "" + rightStats.SPD;
+        RmovNUM.text = "" + rightStats.MOV;
+        RmovLeftTXT.SetActive(false);
+        RmovLeftNUMObj.SetActive(false);
+    }
+    
+    public IEnumerator LerpPosition(GameObject theObject, Vector3 targetPosition, float duration)
+    {
+        float time = 0;
+        Vector2 startPosition = theObject.transform.position;
+        while (time < duration)
         {
-            p1Stats[i].resetMove();
+            theObject.transform.position = Vector2.Lerp(startPosition, targetPosition, time / duration);
+            time += Time.deltaTime;
+            yield return null;
         }
+
+        time = 0;   
+        theObject.transform.position = targetPosition;
+
+        while (time < duration)
+        {
+            theObject.transform.position = Vector2.Lerp(targetPosition, startPosition, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        theObject.transform.position = startPosition;
+    }
+    
+      
+    // false == left hurt, true == right hurt
+    public IEnumerator updateDamageTXT(GameObject unitHurt, int damageNum)
+    {
+        damageTXTPanel.gameObject.SetActive(true);
+        damageTXTPanel.transform.position = mainCamera.WorldToScreenPoint(unitHurt.transform.position + damageTextOffset);
+
+        // dead char attack number
+        if (damageNum == -999)
+            yield return null;
+        else if (damageNum == 0)
+        {
+            damageTXT.color = Color.yellow;
+            damageTXT.text = "(" + damageNum + ")";
+
+            yield return new WaitForSeconds(inbetweenAttackDelay * 3);
+
+            damageTXT.text = "";
+        }
+        else
+        {
+            damageTXT.color = Color.red;
+            damageTXT.text = "(-" + damageNum + ")";
+
+            yield return new WaitForSeconds(inbetweenAttackDelay * 3);
+
+            damageTXT.text = "";
+        }
+
+        damageTXTPanel.gameObject.SetActive(false);
     }
 
-    public void resetP1Attack()
+    public int Attack(Character attacker, Character damageTaker)
     {
-        for (int i = 0; i < p1.transform.childCount; i++)
+        if (attacker.getIsDead() == true || damageTaker.getIsDead() == true)
+            return -999;
+
+        int damageMinusDefense = -1;
+        // if attacker has a physical weapon
+        if (attacker.GetWeaponType() == Character.weaponType.Sword || attacker.GetWeaponType() == Character.weaponType.Bow 
+                                                                   || attacker.GetWeaponType() == Character.weaponType.Axe || attacker.GetWeaponType() == Character.weaponType.Spear)
         {
-            p1Stats[i].setAttack(true);
+            damageMinusDefense = attacker.STR - damageTaker.DEF;
+            // make sure you cant do negative damage
+            if (damageMinusDefense < 0)
+                damageMinusDefense = 0;
+            
+            damageTaker.takeDamage(damageMinusDefense);
         }
+        // attacker has magic weapon
+        else
+        {
+            damageMinusDefense = attacker.MAG - damageTaker.RES;
+            // make sure you cant do negative damage
+            if (damageMinusDefense < 0)
+                damageMinusDefense = 0;
+
+            damageTaker.takeDamage(damageMinusDefense);
+        }
+
+        // all player characters dead
+        if (p1allDead()) 
+        {
+            //Debug.Log("All allies dead you lose");
+            //StartCoroutine(defeat());
+        }
+        // all enemy characters dead
+        else if (p2allDead())
+        {
+            //Debug.Log("All enemies dead you win");
+            //StartCoroutine(victory());
+        }
+
+        return damageMinusDefense;
+    }
+    
+    public bool p1allDead()
+    {
+        for (int i = 0; i < p1Units.Length; i++)
+        {
+            if (p1Stats[i].getIsDead() == false)
+                return false;
+        }
+
+        return true;
+    }
+    
+    public bool p2allDead()
+    {
+        for (int i = 0; i < p2Units.Length; i++)
+        {
+            if (p2Stats[i].getIsDead() == false)
+                return false;
+        }
+
+        return true;
+    }
+    
+    public void giveGearNum(int i, bool player)
+    {
+        if (!player)
+        {
+            p1gearAmount = p1gearAmount + i;
+            updateGearNumPanel();
+        }
+        else
+        {
+            p2gearAmount = p2gearAmount + i;
+            updateGearNumPanel();
+        }
+  
+    }
+    
+    public void updateGearNumPanel()
+    {
+        gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + getGearNum();
     }
 
-    public void resetP2Move()
+    public int getGearNum(bool player)
     {
-        for (int i = 0; i < p2.transform.childCount; i++)
+        if (!player)
         {
-            p2Stats[i].resetMove();
+            return p1gearAmount;
+        }
+        else
+        {
+            return p2gearAmount;
+
         }
     }
-
-    public void resetP2Attack()
+    
+    public IEnumerator plusAnimation()
     {
-        for (int i = 0; i < p2.transform.childCount; i++)
-        {
-            p2Stats[i].setAttack(true);
-        }
-    }
-    */
+        float time = 0;
+        RawImage rI = gearNumPlus.GetComponent<RawImage>();
+        Vector3 originalPos = gearNumPlus.transform.position;
 
+        gearNumPlus.SetActive(true);
+        while (time <= 0.2f)
+        {
+            gearNumPlus.transform.position = gearNumPlus.transform.position + new Vector3(0, 0.25f, 0);
+            if (time > 0.1f)
+                rI.color = new Color(1, 1, 1, rI.color.a * 0.80f);
+            yield return new WaitForSeconds(0.01f);
+            time = time + Time.deltaTime;
+            //Debug.Log("time: " + time);
+        }
+
+        gearNumPlus.transform.position = originalPos;
+        rI.color = new Color(1, 1, 1, 1);
+        gearNumPlus.SetActive(false);
+    }
+
+
+    
 }
 
