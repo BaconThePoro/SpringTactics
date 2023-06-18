@@ -58654,7 +58654,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseMAG
-      value: 2
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseMOV
@@ -58666,7 +58666,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseSTR
-      value: 2
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseDEF

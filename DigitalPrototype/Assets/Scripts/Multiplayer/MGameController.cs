@@ -1584,10 +1584,10 @@ public class MGameController : NetworkBehaviour
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.hpLeft = hpleft;
         targetStats.baseHP = hp;
-        /*if (targetStats.hpLeft < 0)
+        if (targetStats.hpLeft < 0)
             targetStats.hpLeft = 0;
         if (targetStats.hpLeft <= 0)
-            targetStats.die();*/
+            targetStats.die();
 
     }
     
