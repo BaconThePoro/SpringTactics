@@ -58553,6 +58553,14 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: p1bodysList.Array.data[1]
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: p2bodysList.Array.data[0]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: p2bodysList.Array.data[1]
       value: 1
       objectReference: {fileID: 0}
@@ -58573,8 +58581,12 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: p1weaponsList.Array.data[1]
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: p2weaponsList.Array.data[1]
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921158275655, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: m_RootOrder
@@ -58624,6 +58636,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: JacobKnight
       objectReference: {fileID: 0}
+    - target: {fileID: 6094116921297130948, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131000, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: m_Color.b
       value: 0.28746888
@@ -58637,16 +58653,44 @@ PrefabInstance:
       value: 0.34948424
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseMAG
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseMOV
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseSPD
-      value: 300
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921297131001, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseSTR
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseDEF
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseMAG
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: baseMOV
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseRES
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseSPD
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6094116921627439886, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: baseSTR
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6094116921627439887, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: m_Color.b
@@ -62907,8 +62951,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   charName: 
   baseHP: 10
-  baseSTR: 100
-  baseMAG: 1
+  baseSTR: 6
+  baseMAG: 0
   baseDEF: 1
   baseRES: 1
   baseSPD: 1

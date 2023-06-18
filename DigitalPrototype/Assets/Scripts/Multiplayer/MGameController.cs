@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using Vector3 = UnityEngine.Vector3;
 using Unity.Netcode;
+using UnityEngine.Networking.Types;
 
 public class MGameController : NetworkBehaviour
 {
@@ -111,7 +112,7 @@ public class MGameController : NetworkBehaviour
     private Quaternion savedQuaLeft;
     private Quaternion savedQuaRight;
     private float savedCamSize;
-    private float inbetweenAttackDelay = 0f;
+    private float inbetweenAttackDelay = 0.3f;
     private float animationDuration = 0.3f;
     private Vector3 damageTextOffset = new Vector3(0, 0.8f, 0);
     
@@ -150,16 +151,16 @@ public class MGameController : NetworkBehaviour
         movLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
         //For Right Char Info Panel
-        RcharNameTXT = charInfoPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
-        RmovLeftTXT = charInfoPanel.transform.GetChild(9).gameObject;
-        RhpNUM = charInfoPanel.transform.GetChild(10).GetComponent<TMPro.TextMeshProUGUI>();
-        RstrNUM = charInfoPanel.transform.GetChild(11).GetComponent<TMPro.TextMeshProUGUI>();
-        RmagNUM = charInfoPanel.transform.GetChild(12).GetComponent<TMPro.TextMeshProUGUI>();
-        RspdNUM = charInfoPanel.transform.GetChild(13).GetComponent<TMPro.TextMeshProUGUI>();
-        RdefNUM = charInfoPanel.transform.GetChild(14).GetComponent<TMPro.TextMeshProUGUI>();
-        RresNUM = charInfoPanel.transform.GetChild(15).GetComponent<TMPro.TextMeshProUGUI>();
-        RmovNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
-        RmovLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
+        RcharNameTXT = charInfoPanelR.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
+        RmovLeftTXT = charInfoPanelR.transform.GetChild(9).gameObject;
+        RhpNUM = charInfoPanelR.transform.GetChild(10).GetComponent<TMPro.TextMeshProUGUI>();
+        RstrNUM = charInfoPanelR.transform.GetChild(11).GetComponent<TMPro.TextMeshProUGUI>();
+        RmagNUM = charInfoPanelR.transform.GetChild(12).GetComponent<TMPro.TextMeshProUGUI>();
+        RspdNUM = charInfoPanelR.transform.GetChild(13).GetComponent<TMPro.TextMeshProUGUI>();
+        RdefNUM = charInfoPanelR.transform.GetChild(14).GetComponent<TMPro.TextMeshProUGUI>();
+        RresNUM = charInfoPanelR.transform.GetChild(15).GetComponent<TMPro.TextMeshProUGUI>();
+        RmovNUM = charInfoPanelR.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
+        RmovLeftNUMObj = charInfoPanelR.transform.GetChild(17).gameObject;
         ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
         
@@ -268,6 +269,7 @@ public class MGameController : NetworkBehaviour
             if (attackActive == true)
             {
                 validateAttackServerRpc(mousePos, new ServerRpcParams());
+                return;
             }
 
             else if (moveActive == true)
@@ -291,6 +293,8 @@ public class MGameController : NetworkBehaviour
             {
                 if (currTurnMode == turnMode.Player1Turn)
                 {
+                    attackActive = false;
+                    passAttackActiveClientRpc(attackActive);
                     return;
                 }
                 else
@@ -305,6 +309,8 @@ public class MGameController : NetworkBehaviour
             {
                 if (currTurnMode == turnMode.Player2Turn)
                 {
+                    attackActive = false;
+                    passAttackActiveClientRpc(attackActive);
                     return;
                 }
                 else
@@ -316,6 +322,8 @@ public class MGameController : NetworkBehaviour
 
         if (target == null)
         {
+            attackActive = false;
+            passAttackActiveClientRpc(attackActive);
             return;
         }
         
@@ -387,7 +395,7 @@ public class MGameController : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void startBattlemodeClientRpc(string leftName, string rightName, Vector3 lPos, Vector3 rPos)
+    private void startBattlemodeClientRpc(string leftName, string rightName, Vector3 lPos, Vector3 rPos, Quaternion lQua, Quaternion rQua)
     {
         GameObject leftChar = GameObject.Find(leftName);
         GameObject rightChar = GameObject.Find(rightName);
@@ -398,8 +406,8 @@ public class MGameController : NetworkBehaviour
         deactivateAllChildren();
         Mapmode.SetActive(false);
         Battlemode.SetActive(true);
-        savedCamSize = mainCamera.orthographicSize;
         mainCamera.orthographicSize = camBattleSize;
+        mainCamera.transform.position = camBattlePos;
         charInfoPanel.SetActive(true);
         charInfoPanelR.SetActive(true);
         // reactivate participants
@@ -408,6 +416,8 @@ public class MGameController : NetworkBehaviour
         // copy initial position
         leftChar.transform.position = lPos;
         rightChar.transform.position = rPos;
+        leftChar.transform.rotation = lQua;
+        rightChar.transform.rotation = rQua;
     }
 
     public IEnumerator continueBattle(GameObject leftChar, GameObject rightChar, bool playerTurn, int battleRange)
@@ -419,7 +429,9 @@ public class MGameController : NetworkBehaviour
         turnPanel.SetActive(false);
         gearNumPanel.SetActive(false);
         settingsPanel.SetActive(false);
-        deselectTargetServerRpc(new ServerRpcParams()); // might need to deselect both
+        deselectTargetServerRpc(new ServerRpcParams()); // leaves target active for one player on server, might cause a bug later
+        p1DeselectClientRpc();
+        p2DeselectClientRpc();
         deactivateAllChildren();
         Mapmode.SetActive(false);
         Battlemode.SetActive(true);
@@ -427,7 +439,7 @@ public class MGameController : NetworkBehaviour
         mainCamera.orthographicSize = camBattleSize;
         charInfoPanel.SetActive(true);
         charInfoPanelR.SetActive(true);
-        updateBattleStats(leftStats, rightStats);
+        updateBattleStats(leftChar, rightChar);
         // reactivate participants
         leftChar.SetActive(true);
         rightChar.SetActive(true);
@@ -452,10 +464,11 @@ public class MGameController : NetworkBehaviour
         leftChar.transform.rotation = leftBattleQua;
         rightChar.transform.rotation = rightBattleQua;
 
-        startBattlemodeClientRpc(leftChar.name, rightChar.name, leftChar.transform.position, rightChar.transform.position);
+        startBattlemodeClientRpc(leftChar.name, rightChar.name, leftChar.transform.position, rightChar.transform.position
+        , leftBattleQua, rightBattleQua);
         
         // delay for 1.5s so user can see before battle starts
-        yield return new WaitForSeconds(inbetweenAttackDelay * 3);
+        yield return new WaitForSeconds(inbetweenAttackDelay);
 
         // Determine who should attack first
         GameObject firstAttacker;
@@ -505,11 +518,11 @@ public class MGameController : NetworkBehaviour
             yield return StartCoroutine(LerpPosition(firstAttacker, firstAttacker.transform.position + firstAttacker.transform.right, animationDuration));
             yield return new WaitForSeconds(inbetweenAttackDelay);
             yield return StartCoroutine(updateDamageTXT(secondAttacker, Attack(firstStats, secondStats))); // person taking damage and damage value
-            updateBattleStats(leftStats, rightStats);
+            updateBattleStats(leftChar, rightChar);
         }
  
         // delay
-        yield return new WaitForSeconds(inbetweenAttackDelay);
+        yield return new WaitForSeconds(inbetweenAttackDelay * 3);
 
         // second attack
         if (secondStats.getAttackRange() >= battleRange)
@@ -517,7 +530,7 @@ public class MGameController : NetworkBehaviour
             yield return StartCoroutine(LerpPosition(secondAttacker, secondAttacker.transform.position + secondAttacker.transform.right, animationDuration));
             yield return new WaitForSeconds(inbetweenAttackDelay);
             yield return StartCoroutine(updateDamageTXT(firstAttacker, Attack(secondStats, firstStats))); // person taking damage and damage value
-            updateBattleStats(leftStats, rightStats);
+            updateBattleStats(leftChar, rightChar);
         }
 
         // delay again for 1.5s so user can see result of battle before leaving battlemode
@@ -542,7 +555,7 @@ public class MGameController : NetworkBehaviour
         changeMode(gameMode.MapMode); 
         
         leaveBattlemodClientRpc(leftChar.name, rightChar.name, leftChar.transform.position, rightChar.transform.position, 
-            mainCamera.transform.position, mainCamera.orthographicSize);
+            mainCamera.transform.position, mainCamera.orthographicSize, savedQuaLeft, savedQuaRight);
         
         // return to either player or enemy turn
         if (playerTurn == true)
@@ -581,9 +594,16 @@ public class MGameController : NetworkBehaviour
             StartCoroutine(plusAnimation());
         }
     }
+
+    [ClientRpc]
+    private void copyPositionClientRpc(string target , Vector3 tPos)
+    {
+        GameObject targetChar = GameObject.Find(target);
+        targetChar.transform.position = tPos;
+    }
     
     [ClientRpc]
-    private void leaveBattlemodClientRpc(string leftName, string rightName, Vector3 lPos, Vector3 rPos, Vector3 camPos, float camSize)
+    private void leaveBattlemodClientRpc(string leftName, string rightName, Vector3 lPos, Vector3 rPos, Vector3 camPos, float camSize, Quaternion lQua, Quaternion rQua)
     {
         GameObject leftChar = GameObject.Find(leftName);
         GameObject rightChar = GameObject.Find(rightName);
@@ -592,6 +612,8 @@ public class MGameController : NetworkBehaviour
         rightChar.transform.position = rPos;
         mainCamera.transform.position = camPos;
         mainCamera.orthographicSize = camSize;
+        leftChar.transform.rotation = savedQuaLeft;
+        rightChar.transform.rotation = savedQuaRight;
         
         charInfoPanel.SetActive(false);
         charInfoPanelR.SetActive(false);
@@ -918,7 +940,8 @@ public class MGameController : NetworkBehaviour
         }
         attackAreas[0].gameObject.SetActive(false);
         attackAreas[1].gameObject.SetActive(false);
-        p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
+        if (p1Targeted != null) 
+            p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p1Targeted = null;
         p1TargetedStats = null;
         contextMenu.SetActive(false);
@@ -952,7 +975,8 @@ public class MGameController : NetworkBehaviour
         }
         attackAreas[0].gameObject.SetActive(false);
         attackAreas[1].gameObject.SetActive(false);
-        p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
+        if (p2Targeted != null)
+            p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
         p2Targeted = null;
         p2TargetedStats = null;
         contextMenu.SetActive(false);
@@ -1518,6 +1542,7 @@ public class MGameController : NetworkBehaviour
 
         }
     }
+    
     [ServerRpc(RequireOwnership = false)]
     public void resetAllAttackServerRpc()
     {
@@ -1559,6 +1584,10 @@ public class MGameController : NetworkBehaviour
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.hpLeft = hpleft;
         targetStats.baseHP = hp;
+        /*if (targetStats.hpLeft < 0)
+            targetStats.hpLeft = 0;
+        if (targetStats.hpLeft <= 0)
+            targetStats.die();*/
 
     }
     
@@ -1619,8 +1648,15 @@ public class MGameController : NetworkBehaviour
             p2Units[i].gameObject.SetActive(true);
         }
     }
-    public void updateBattleStats(Character leftStats, Character rightStats)
+    
+    
+    public void updateBattleStats(GameObject lChar, GameObject rChar)
     {
+        Character leftStats = lChar.GetComponent<Character>();
+        Character rightStats = rChar.GetComponent<Character>();
+        
+        Debug.Log("lName: " + lChar.name + ", rName: " + rChar.name);
+        
         charNameTXT.text = "Name: " + leftStats.charName;
         hpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
         strNUM.text = "" + leftStats.STR;
@@ -1643,7 +1679,7 @@ public class MGameController : NetworkBehaviour
         RmovLeftTXT.SetActive(false);
         RmovLeftNUMObj.SetActive(false);
         
-        passBattleStatsClientRpc(leftStats.name, rightStats.name);
+        passBattleStatsClientRpc(lChar.name, rChar.name);
     }
 
     [ClientRpc]
@@ -1683,6 +1719,7 @@ public class MGameController : NetworkBehaviour
         {
             theObject.transform.position = Vector2.Lerp(startPosition, targetPosition, time / duration);
             time += Time.deltaTime;
+            copyPositionClientRpc(theObject.name, theObject.transform.position);
             yield return null;
         }
 
@@ -1693,6 +1730,7 @@ public class MGameController : NetworkBehaviour
         {
             theObject.transform.position = Vector2.Lerp(targetPosition, startPosition, time / duration);
             time += Time.deltaTime;
+            copyPositionClientRpc(theObject.name, theObject.transform.position);
             yield return null;
         }
 
@@ -1703,7 +1741,8 @@ public class MGameController : NetworkBehaviour
     // false == left hurt, true == right hurt
     public IEnumerator updateDamageTXT(GameObject unitHurt, int damageNum)
     {
-        damageTXTPanel.gameObject.SetActive(true);
+        damageTXTPanel.SetActive(true);
+        toggleDamageTXTClientRpc(true);
         damageTXTPanel.transform.position = mainCamera.WorldToScreenPoint(unitHurt.transform.position + damageTextOffset);
 
         // dead char attack number
@@ -1713,22 +1752,40 @@ public class MGameController : NetworkBehaviour
         {
             damageTXT.color = Color.yellow;
             damageTXT.text = "(" + damageNum + ")";
-
+            updateDamageTXTClientRpc(unitHurt.transform.position, damageTXT.text);
+            
             yield return new WaitForSeconds(inbetweenAttackDelay * 3);
 
             damageTXT.text = "";
+            updateDamageTXTClientRpc(unitHurt.transform.position, damageTXT.text);
         }
         else
         {
             damageTXT.color = Color.red;
             damageTXT.text = "(-" + damageNum + ")";
+            updateDamageTXTClientRpc(unitHurt.transform.position, damageTXT.text);
 
             yield return new WaitForSeconds(inbetweenAttackDelay * 3);
 
             damageTXT.text = "";
+            updateDamageTXTClientRpc(unitHurt.transform.position, damageTXT.text);
         }
 
-        damageTXTPanel.gameObject.SetActive(false);
+        damageTXTPanel.SetActive(false);
+        toggleDamageTXTClientRpc(false);
+    }
+
+    [ClientRpc]
+    private void toggleDamageTXTClientRpc(bool cond)
+    {
+        damageTXTPanel.SetActive(cond);
+    }
+    
+    [ClientRpc]
+    private void updateDamageTXTClientRpc(Vector3 pos, string text)
+    {
+        damageTXTPanel.transform.position = mainCamera.WorldToScreenPoint(pos + damageTextOffset);
+        damageTXT.text = text;
     }
 
     public int Attack(Character attacker, Character damageTaker)
@@ -1835,31 +1892,32 @@ public class MGameController : NetworkBehaviour
         Vector3 originalPos = gearNumPlus.transform.position;
         gearNumPlus.SetActive(true);
         togglePlusClientRpc(true);
+        if (!NetworkManager.IsClient)
+            plusAnimationCLientRpc();
         while (time <= 0.2f)
         {
             gearNumPlus.transform.position = gearNumPlus.transform.position + new Vector3(0, 0.25f, 0);
             if (time > 0.1f)
                 rI.color = new Color(1, 1, 1, rI.color.a * 0.80f);
-            plusAnimationCLientRpc(  gearNumPlus.transform.position, rI.color);
             yield return new WaitForSeconds(0.01f);
-            time = time + Time.deltaTime;
+            time = time + Time.smoothDeltaTime;
             //Debug.Log("time: " + time);
         }
 
         gearNumPlus.transform.position = originalPos;
         rI.color = new Color(1, 1, 1, 1);
-        plusAnimationCLientRpc( gearNumPlus.transform.position, rI.color);
         gearNumPlus.SetActive(false);
         togglePlusClientRpc(false);
-
     }
 
     [ClientRpc]
-    public void plusAnimationCLientRpc(Vector3 newPosition, Color newColor)
+    public void plusAnimationCLientRpc()
     {
-        gearNumPlus.transform.position = newPosition;
-        gearNumPlus.GetComponent<RawImage>().color = newColor;
+        StartCoroutine(plusAnimation()); 
+        return;
     }
+    
+    
 
     [ClientRpc]
     public void togglePlusClientRpc(bool toogle)
