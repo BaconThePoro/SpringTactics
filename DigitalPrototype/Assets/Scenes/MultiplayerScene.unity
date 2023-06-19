@@ -8823,8 +8823,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1371044851}
+        m_TargetAssemblyTypeName: MGameController, Assembly-CSharp
         m_MethodName: upgradeButtonPressed
         m_Mode: 1
         m_Arguments:
@@ -58501,6 +58501,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1477384663}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: upgradeMenu
+      value: 
+      objectReference: {fileID: 681219175}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: collisionMap
       value: 
       objectReference: {fileID: 691943312}
@@ -58520,6 +58524,10 @@ PrefabInstance:
       propertyPath: settingsPanel
       value: 
       objectReference: {fileID: 2133959446}
+    - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
+      propertyPath: weaponSprites
+      value: 
+      objectReference: {fileID: 1797821007}
     - target: {fileID: 6094116921158275654, guid: 254b3e3ad74c8e944b5bdef4649ec598, type: 3}
       propertyPath: charInfoPanelR
       value: 

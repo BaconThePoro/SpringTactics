@@ -58,17 +58,17 @@ public class MGameController : NetworkBehaviour
     //Character Information Panel Info
     public GameObject charInfoPanel = null;
     //Above must be attached in editor
-    private GameObject movLeftTXT = null;
-    private GameObject movLeftNUMObj = null;
-    private TMPro.TextMeshProUGUI charNameTXT = null;
-    private TMPro.TextMeshProUGUI hpNUM = null;
-    private TMPro.TextMeshProUGUI strNUM = null;
-    private TMPro.TextMeshProUGUI magNUM = null;
-    private TMPro.TextMeshProUGUI spdNUM = null;
-    private TMPro.TextMeshProUGUI defNUM = null;
-    private TMPro.TextMeshProUGUI resNUM = null;
-    private TMPro.TextMeshProUGUI movNUM = null;
-    private TMPro.TextMeshProUGUI movLeftNUM = null;
+    private GameObject LmovLeftTXT = null;
+    private GameObject LmovLeftNUMObj = null;
+    private TMPro.TextMeshProUGUI LcharNameTXT = null;
+    private TMPro.TextMeshProUGUI LhpNUM = null;
+    private TMPro.TextMeshProUGUI LstrNUM = null;
+    private TMPro.TextMeshProUGUI LmagNUM = null;
+    private TMPro.TextMeshProUGUI LspdNUM = null;
+    private TMPro.TextMeshProUGUI LdefNUM = null;
+    private TMPro.TextMeshProUGUI LresNUM = null;
+    private TMPro.TextMeshProUGUI LmovNUM = null;
+    private TMPro.TextMeshProUGUI LmovLeftNUM = null;
     // right panel 
     public GameObject charInfoPanelR = null; 
     private GameObject RmovLeftTXT = null;
@@ -127,6 +127,48 @@ public class MGameController : NetworkBehaviour
     public GameObject damageTXTPanel = null;
     private TMPro.TextMeshProUGUI damageTXT = null;
     private GameObject gearNumPlus = null;
+    
+    // upgrade panel stuff
+    private TMPro.TMP_InputField charName = null;
+    private Image charImage = null;
+    private Dropdown bodyDropdown = null;
+    private Dropdown weaponDropdown = null;
+    private TMPro.TextMeshProUGUI hpNUM = null;
+    private TMPro.TextMeshProUGUI strNUM = null;
+    private TMPro.TextMeshProUGUI magNUM = null;
+    private TMPro.TextMeshProUGUI spdNUM = null;
+    private TMPro.TextMeshProUGUI defNUM = null;
+    private TMPro.TextMeshProUGUI resNUM = null;
+    private TMPro.TextMeshProUGUI movNUM = null;
+    private TMPro.TextMeshProUGUI hpMOD = null;
+    private TMPro.TextMeshProUGUI strMOD = null;
+    private TMPro.TextMeshProUGUI magMOD = null;
+    private TMPro.TextMeshProUGUI spdMOD = null;
+    private TMPro.TextMeshProUGUI defMOD = null;
+    private TMPro.TextMeshProUGUI resMOD = null;
+    private TMPro.TextMeshProUGUI movMOD = null;
+    private TMPro.TextMeshProUGUI hpCOST = null;
+    private TMPro.TextMeshProUGUI strCOST = null;
+    private TMPro.TextMeshProUGUI magCOST = null;
+    private TMPro.TextMeshProUGUI spdCOST = null;
+    private TMPro.TextMeshProUGUI defCOST = null;
+    private TMPro.TextMeshProUGUI resCOST = null;
+    private TMPro.TextMeshProUGUI movCOST = null;
+    private Image weaponIMG = null;
+    private Button hpButton = null;
+    private Button strButton = null;
+    private Button magButton = null;
+    private Button defButton = null;
+    private Button resButton = null;
+    private Button spdButton = null;
+    private Button movButton = null;
+    private GameObject weaponStatsPanel = null;
+    private TMPro.TextMeshProUGUI weaponStats1 = null;
+    private TMPro.TextMeshProUGUI weaponStats2 = null;
+    private TMPro.TextMeshProUGUI weaponRange = null;
+    public GameObject weaponSprites = null; 
+    public GameObject upgradeMenu = null;
+
 
     void Start()
     {
@@ -138,17 +180,17 @@ public class MGameController : NetworkBehaviour
         deselectButton = contextMenu.transform.GetChild(4).GetComponent<Button>();
       
         //Char Info gets all information for stats
-        charNameTXT = charInfoPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
-        movLeftTXT = charInfoPanel.transform.GetChild(9).gameObject;
-        hpNUM = charInfoPanel.transform.GetChild(10).GetComponent<TMPro.TextMeshProUGUI>();
-        strNUM = charInfoPanel.transform.GetChild(11).GetComponent<TMPro.TextMeshProUGUI>();
-        magNUM = charInfoPanel.transform.GetChild(12).GetComponent<TMPro.TextMeshProUGUI>();
-        spdNUM = charInfoPanel.transform.GetChild(13).GetComponent<TMPro.TextMeshProUGUI>();
-        defNUM = charInfoPanel.transform.GetChild(14).GetComponent<TMPro.TextMeshProUGUI>();
-        resNUM = charInfoPanel.transform.GetChild(15).GetComponent<TMPro.TextMeshProUGUI>();
-        movNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
-        movLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
-        movLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
+        LcharNameTXT = charInfoPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
+        LmovLeftTXT = charInfoPanel.transform.GetChild(9).gameObject;
+        LhpNUM = charInfoPanel.transform.GetChild(10).GetComponent<TMPro.TextMeshProUGUI>();
+        LstrNUM = charInfoPanel.transform.GetChild(11).GetComponent<TMPro.TextMeshProUGUI>();
+        LmagNUM = charInfoPanel.transform.GetChild(12).GetComponent<TMPro.TextMeshProUGUI>();
+        LspdNUM = charInfoPanel.transform.GetChild(13).GetComponent<TMPro.TextMeshProUGUI>();
+        LdefNUM = charInfoPanel.transform.GetChild(14).GetComponent<TMPro.TextMeshProUGUI>();
+        LresNUM = charInfoPanel.transform.GetChild(15).GetComponent<TMPro.TextMeshProUGUI>();
+        LmovNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
+        LmovLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
+        LmovLeftNUM = LmovLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
         //For Right Char Info Panel
         RcharNameTXT = charInfoPanelR.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
@@ -163,7 +205,45 @@ public class MGameController : NetworkBehaviour
         RmovLeftNUMObj = charInfoPanelR.transform.GetChild(17).gameObject;
         ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
         
-        
+        //upgrade menu stuff
+        charName = upgradeMenu.transform.GetChild(1).transform.GetChild(3).GetComponent<TMPro.TMP_InputField>();
+        charImage = upgradeMenu.transform.GetChild(1).transform.GetChild(6).GetComponent<Image>();
+        bodyDropdown = upgradeMenu.transform.GetChild(1).transform.GetChild(8).GetComponent<Dropdown>();
+        weaponDropdown = upgradeMenu.transform.GetChild(1).transform.GetChild(10).GetComponent<Dropdown>();
+        hpNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(18).GetComponent<TMPro.TextMeshProUGUI>();
+        strNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(19).GetComponent<TMPro.TextMeshProUGUI>();
+        magNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(20).GetComponent<TMPro.TextMeshProUGUI>();
+        spdNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(21).GetComponent<TMPro.TextMeshProUGUI>();
+        defNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(22).GetComponent<TMPro.TextMeshProUGUI>();
+        resNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();     
+        movNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(24).GetComponent<TMPro.TextMeshProUGUI>();
+        hpMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(25).GetComponent<TMPro.TextMeshProUGUI>();
+        strMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(26).GetComponent<TMPro.TextMeshProUGUI>();
+        magMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(27).GetComponent<TMPro.TextMeshProUGUI>();
+        spdMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(28).GetComponent<TMPro.TextMeshProUGUI>();
+        defMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(29).GetComponent<TMPro.TextMeshProUGUI>();
+        resMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(30).GetComponent<TMPro.TextMeshProUGUI>();
+        movMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(31).GetComponent<TMPro.TextMeshProUGUI>();
+        hpCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(34).GetComponent<TMPro.TextMeshProUGUI>();
+        strCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>(); 
+        magCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(38).GetComponent<TMPro.TextMeshProUGUI>();
+        defCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(40).GetComponent<TMPro.TextMeshProUGUI>();
+        resCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(42).GetComponent<TMPro.TextMeshProUGUI>();
+        spdCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(44).GetComponent<TMPro.TextMeshProUGUI>();
+        movCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(46).GetComponent<TMPro.TextMeshProUGUI>();
+        weaponIMG = upgradeMenu.transform.GetChild(1).transform.GetChild(47).GetComponent<Image>();
+        hpButton = upgradeMenu.transform.GetChild(1).transform.GetChild(32).GetComponent<Button>();
+        strButton = upgradeMenu.transform.GetChild(1).transform.GetChild(35).GetComponent<Button>();
+        magButton = upgradeMenu.transform.GetChild(1).transform.GetChild(37).GetComponent<Button>();
+        defButton = upgradeMenu.transform.GetChild(1).transform.GetChild(39).GetComponent<Button>();
+        resButton = upgradeMenu.transform.GetChild(1).transform.GetChild(41).GetComponent<Button>();
+        spdButton = upgradeMenu.transform.GetChild(1).transform.GetChild(43).GetComponent<Button>();
+        movButton = upgradeMenu.transform.GetChild(1).transform.GetChild(45).GetComponent<Button>();
+        weaponStatsPanel = upgradeMenu.transform.GetChild(1).transform.GetChild(48).gameObject;
+        weaponStats1 = weaponStatsPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>();
+        weaponStats2 = weaponStatsPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
+        weaponRange = weaponStatsPanel.transform.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>();
+
         //Finding Parents for movement area display
         overlayMap = GameObject.Find("overlayMap").GetComponent<Tilemap>();
         pathfinding = new MPathfinding(17, 11, collisionMap);
@@ -1201,51 +1281,51 @@ public class MGameController : NetworkBehaviour
     
      public void P1updateCharInfo()
     {
-        charNameTXT.text = "Name: " + p1TargetedStats.charName;
-        hpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
-        strNUM.text = "" + p1TargetedStats.STR;
-        magNUM.text = "" + p1TargetedStats.MAG;
-        defNUM.text = "" + p1TargetedStats.DEF;
-        resNUM.text = "" + p1TargetedStats.RES;
-        spdNUM.text = "" + p1TargetedStats.SPD;
+        LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
+        LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
+        LstrNUM.text = "" + p1TargetedStats.STR;
+        LmagNUM.text = "" + p1TargetedStats.MAG;
+        LdefNUM.text = "" + p1TargetedStats.DEF;
+        LresNUM.text = "" + p1TargetedStats.RES;
+        LspdNUM.text = "" + p1TargetedStats.SPD;
 
         if (!p1Targeted.transform.IsChildOf(p2.transform))
         {
-            movNUM.text = "" + p1TargetedStats.MOV;
-            movLeftNUM.text = "" + p1TargetedStats.movLeft;
-            movLeftTXT.SetActive(true);
-            movLeftNUMObj.SetActive(true);
+            LmovNUM.text = "" + p1TargetedStats.MOV;
+            LmovLeftNUM.text = "" + p1TargetedStats.movLeft;
+            LmovLeftTXT.SetActive(true);
+            LmovLeftNUMObj.SetActive(true);
         }
         else
         {
-            movNUM.text = "" + p1TargetedStats.MOV;
-            movLeftTXT.SetActive(false);
-            movLeftNUMObj.SetActive(false);
+            LmovNUM.text = "" + p1TargetedStats.MOV;
+            LmovLeftTXT.SetActive(false);
+            LmovLeftNUMObj.SetActive(false);
         }
     }
     
     public void P2updateCharInfo()
     {
-        charNameTXT.text = "Name: " + p2TargetedStats.charName;
-        hpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
-        strNUM.text = "" + p2TargetedStats.STR;
-        magNUM.text = "" + p2TargetedStats.MAG;
-        defNUM.text = "" + p2TargetedStats.DEF;
-        resNUM.text = "" + p2TargetedStats.RES;
-        spdNUM.text = "" + p2TargetedStats.SPD;
+        LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
+        LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
+        LstrNUM.text = "" + p2TargetedStats.STR;
+        LmagNUM.text = "" + p2TargetedStats.MAG;
+        LdefNUM.text = "" + p2TargetedStats.DEF;
+        LresNUM.text = "" + p2TargetedStats.RES;
+        LspdNUM.text = "" + p2TargetedStats.SPD;
 
         if (!p2Targeted.transform.IsChildOf(p2.transform))
         {
-            movNUM.text = "" + p2TargetedStats.MOV;
-            movLeftNUM.text = "" + p2TargetedStats.movLeft;
-            movLeftTXT.SetActive(true);
-            movLeftNUMObj.SetActive(true);
+            LmovNUM.text = "" + p2TargetedStats.MOV;
+            LmovLeftNUM.text = "" + p2TargetedStats.movLeft;
+            LmovLeftTXT.SetActive(true);
+            LmovLeftNUMObj.SetActive(true);
         }
         else
         {
-            movNUM.text = "" + p2TargetedStats.MOV;
-            movLeftTXT.SetActive(false);
-            movLeftNUMObj.SetActive(false);
+            LmovNUM.text = "" + p2TargetedStats.MOV;
+            LmovLeftTXT.SetActive(false);
+            LmovLeftNUMObj.SetActive(false);
         }
     }
     
@@ -1316,6 +1396,693 @@ public class MGameController : NetworkBehaviour
     {
         attackActiveServerRpc(true);
         highlightAttack();
+    }
+    
+    public void upgradeButtonPressed()
+    {
+        // if not in mapmode dont do anything
+        if (currGameMode != gameMode.MapMode)
+            return;
+        
+        upgradeServerRpc(new ServerRpcParams());
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void upgradeServerRpc(ServerRpcParams serverRpcParams)
+    {
+        changeMode(gameMode.MenuMode);
+
+        if (serverRpcParams.Receive.SenderClientId == 1)
+        {
+            p1UpgradeClientRpc();
+        }
+        else if (serverRpcParams.Receive.SenderClientId == 2)
+        {
+            p2UpgradeClientRpc();
+        }
+    }
+    
+     public void updateUpgradeMenu(GameObject character)
+    {
+        Character charStats = character.GetComponent<Character>();
+        charName.text = charStats.name;
+        charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
+        charImage.transform.localScale = character.transform.localScale;
+
+        weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
+        weaponIMG.transform.localScale = charStats.transform.GetChild(1).localScale;
+        charStats.updateCosts();
+
+        if (bodyDropdown.options.Count == 0)
+        {
+            string[] bodyNames = Enum.GetNames(typeof(Character.bodyType));
+            List<string> body = new List<string>(bodyNames);
+            bodyDropdown.AddOptions(body);
+        }
+        else
+        {
+            bodyDropdown.value = (int)charStats.GetBodyType();
+        }
+
+        if (weaponDropdown.options.Count == 0)
+        {
+            List<string> weapons = new List<string>();
+
+            for (int i = 0; i < weaponSprites.transform.childCount; i++)
+            {
+                weapons.Add(weaponSprites.transform.GetChild(i).name);
+            }
+
+            weaponDropdown.AddOptions(weapons);
+        }
+        else
+        {
+            weaponDropdown.value = (int)charStats.GetWeaponType();
+        }
+
+        hpNUM.text = "" + charStats.baseHP;
+        strNUM.text = "" + charStats.baseSTR;
+        magNUM.text = "" + charStats.baseMAG;
+        defNUM.text = "" + charStats.baseDEF;
+        resNUM.text = "" + charStats.baseRES;
+        spdNUM.text = "" + charStats.baseSPD;
+        movNUM.text = "" + charStats.baseMOV;
+
+        weaponRange.text = "RNG: " + charStats.getAttackRange();
+        weaponStats1.text = "";
+        weaponStats2.text = "";
+
+        if (charStats.HPMOD == 0 && charStats.STRMOD == 0 && charStats.MAGMOD == 0 && charStats.DEFMOD == 0
+            && charStats.RESMOD == 0 && charStats.SPDMOD == 0 && charStats.MOVMOD == 0)
+        {
+            //weaponStatsPanel.gameObject.SetActive(false);
+            weaponStats1.text = "";
+            weaponStats2.text = "";
+        }
+
+        if (charStats.HPMOD == 0)
+            hpMOD.text = "";
+        else if (charStats.HPMOD > 0)
+        {
+            hpMOD.color = Color.green;
+            hpMOD.text = "+ " + charStats.HPMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            weaponStats1.color = Color.green;
+            weaponStats1.text = "+" + charStats.HPMOD + " HP";
+        }
+        else
+        {
+            hpMOD.color = Color.red;
+            hpMOD.text = "- " + Mathf.Abs(charStats.HPMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            weaponStats1.color = Color.red;
+            weaponStats1.text = "-" + Mathf.Abs(charStats.HPMOD) + " HP";
+        }
+
+        if (charStats.STRMOD == 0)
+            strMOD.text = "";
+        else if (charStats.STRMOD > 0)
+        {
+            strMOD.color = Color.green;
+            strMOD.text = "+ " + charStats.STRMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.STRMOD + " STR";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.STRMOD + " STR";
+            }
+        }
+        else
+        {
+            strMOD.color = Color.red;
+            strMOD.text = "- " + Mathf.Abs(charStats.STRMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.STRMOD) + " STR";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.STRMOD) + " STR";
+            }
+        }
+
+        if (charStats.MAGMOD == 0)
+            magMOD.text = "";
+        else if (charStats.MAGMOD > 0)
+        {
+            magMOD.color = Color.green;
+            magMOD.text = "+ " + charStats.MAGMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.MAGMOD + " MAG";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.MAGMOD + " MAG";
+            }
+        }
+        else
+        {
+            magMOD.color = Color.red;
+            magMOD.text = "- " + Mathf.Abs(charStats.MAGMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.MAGMOD) + " MAG";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.MAGMOD) + " MAG";
+            }
+        }
+
+        if (charStats.DEFMOD == 0)
+            defMOD.text = "";
+        else if (charStats.DEFMOD > 0)
+        {
+            defMOD.color = Color.green;
+            defMOD.text = "+ " + charStats.DEFMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.DEFMOD + " DEF";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.DEFMOD + " DEF";
+            }
+        }
+        else
+        {
+            defMOD.color = Color.red;
+            defMOD.text = "- " + Mathf.Abs(charStats.DEFMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.DEFMOD) + " DEF";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.DEFMOD) + " DEF";
+            }
+        }
+
+        if (charStats.RESMOD == 0)
+            resMOD.text = "";
+        else if (charStats.RESMOD > 0)
+        {
+            resMOD.color = Color.green;
+            resMOD.text = "+ " + charStats.RESMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.RESMOD + " RES";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.RESMOD + " RES";
+            }
+        }
+        else
+        {
+            resMOD.color = Color.red;
+            resMOD.text = "- " + Mathf.Abs(charStats.RESMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.RESMOD) + " RES";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.RESMOD) + " RES";
+            }
+        }
+
+        if (charStats.SPDMOD == 0)
+            spdMOD.text = "";
+        else if (charStats.SPDMOD > 0)
+        {
+            spdMOD.color = Color.green;
+            spdMOD.text = "+ " + charStats.SPDMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.SPDMOD + " SPD";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.SPDMOD + " SPD";
+            }
+        }
+        else
+        {
+            spdMOD.color = Color.red;
+            spdMOD.text = "- " + Mathf.Abs(charStats.SPDMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.SPDMOD) + " SPD";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.SPDMOD) + " SPD";
+            }
+        }
+
+        if (charStats.MOVMOD == 0)
+            movMOD.text = "";
+        else if (charStats.MOVMOD > 0)
+        {
+            movMOD.color = Color.green;
+            movMOD.text = "+ " + charStats.MOVMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.MOVMOD + " MOV";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.MOVMOD + " MOV";
+            }
+        }
+        else
+        {
+            movMOD.color = Color.red;
+            movMOD.text = "- " + Mathf.Abs(charStats.MOVMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.MOVMOD) + " MOV";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.MOVMOD) + " MOV";
+            }
+        }
+
+        if (charStats.baseHP < charStats.getHPMAX())
+        {
+            hpButton.gameObject.SetActive(true);
+            hpCOST.text = "x" + charStats.HPCost;
+        }
+        else
+        {
+            hpCOST.text = "MAX";
+            hpButton.gameObject.SetActive(false);
+        }
+
+
+        if (charStats.baseSTR < charStats.getSTRMAX())
+        {
+            strButton.gameObject.SetActive(true);
+            strCOST.text = "x" + charStats.STRCost;
+        }        
+        else
+        {
+            strCOST.text = "MAX";
+            strButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseMAG < charStats.getMAGMAX())
+        {
+            magButton.gameObject.SetActive(true);
+            magCOST.text = "x" + charStats.MAGCost;
+        }
+        else
+        {
+            magCOST.text = "MAX";
+            magButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseDEF < charStats.getDEFMAX())
+        {
+            defButton.gameObject.SetActive(true);
+            defCOST.text = "x" + charStats.DEFCost;
+        }   
+        else
+        {
+            defCOST.text = "MAX";
+            defButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseRES < charStats.getRESMAX())
+        {
+            resButton.gameObject.SetActive(true);
+            resCOST.text = "x" + charStats.RESCost;
+        } 
+        else
+        {
+            resCOST.text = "MAX";
+            resButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseSPD < charStats.getSPDMAX())
+        {
+            spdButton.gameObject.SetActive(true);
+            spdCOST.text = "x" + charStats.SPDCost;
+        }       
+        else
+        {
+            spdCOST.text = "MAX";
+            spdButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseMOV < charStats.getMOVMAX())
+        {
+            movButton.gameObject.SetActive(true);
+            movCOST.text = "x" + charStats.MOVCost;
+        }         
+        else
+        {
+            movCOST.text = "MAX";
+            movButton.gameObject.SetActive(false);
+        }
+    }
+     
+     
+     public void changedName(string s)
+     {
+         if (NetworkManager.Singleton.LocalClientId == 1)
+         {
+             p1TargetedStats.charName = s;
+             p1Targeted.name = s;
+         }
+         else if (NetworkManager.Singleton.LocalClientId == 2)
+         {
+             p2TargetedStats.charName = s;
+             p2Targeted.name = s; 
+         }
+     }
+
+     public void changedBody(Dropdown d)
+     {
+         if (NetworkManager.Singleton.LocalClientId == 1)
+         {
+             int val = d.value;
+             p1TargetedStats.changeBody((Character.bodyType)val);
+             updateUpgradeMenu(p1Targeted);
+         }
+         else if (NetworkManager.Singleton.LocalClientId == 2)
+         {
+             int val = d.value;
+             p2TargetedStats.changeBody((Character.bodyType)val);
+             updateUpgradeMenu(p2Targeted);
+         }
+        
+     }
+
+     public void changedWeapon(Dropdown d)
+     {
+         if (NetworkManager.Singleton.LocalClientId == 1)
+         {
+             //hideArea();
+             int val = d.value;
+             p1TargetedStats.changeWeapon((Character.weaponType)val);
+             updateUpgradeMenu(p1Targeted);
+         }
+         else if(NetworkManager.Singleton.LocalClientId==2)
+         {
+             //hideArea();
+             int val = d.value;
+             p2TargetedStats.changeWeapon((Character.weaponType)val);
+             updateUpgradeMenu(p2Targeted);
+         }
+        
+     }
+
+
+    [ClientRpc]
+    public void p1UpgradeClientRpc()
+    {
+        
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+        contextMenu.SetActive(false);
+        upgradeMenu.gameObject.SetActive(true);
+        updateUpgradeMenu(p1Targeted);
+
+    }
+
+    public void hpButtonPressed()
+    {
+        hpButtonPressedServerRpc();
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void hpButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.HPCost && p1TargetedStats.baseHP < p1TargetedStats.getHPMAX())
+            {
+                giveGearNum(-p1TargetedStats.HPCost,false);
+                p1TargetedStats.baseHP = p1TargetedStats.baseHP + 1;
+                p1TargetedStats.hpLeft = p1TargetedStats.hpLeft + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.HPCost && p2TargetedStats.baseHP < p2TargetedStats.getHPMAX())
+            {
+                giveGearNum(-p2TargetedStats.HPCost,true);
+                p2TargetedStats.baseHP = p2TargetedStats.baseHP + 1;
+                p2TargetedStats.hpLeft = p2TargetedStats.hpLeft + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();
+            }
+        }
+      
+    }
+    public void strButtonPressed()
+    {
+        strButtonPressedServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void strButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.STRCost && p1TargetedStats.baseSTR < p1TargetedStats.getSTRMAX())
+            {
+                giveGearNum(-p1TargetedStats.STRCost,false);
+                p1TargetedStats.baseSTR = p1TargetedStats.baseSTR + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.STRCost && p2TargetedStats.baseSTR < p2TargetedStats.getSTRMAX())
+            {
+                giveGearNum(-p2TargetedStats.STRCost,true);
+                p2TargetedStats.baseSTR = p2TargetedStats.baseSTR + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();
+            }
+        }
+       
+    }
+
+    public void magButtonPressed()
+    {
+        magButtonPressedServerRpc();
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void magButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.MAGCost && p1TargetedStats.baseMAG < p1TargetedStats.getMAGMAX())
+            {
+                giveGearNum(-p1TargetedStats.MAGCost,false);
+                p1TargetedStats.baseMAG = p1TargetedStats.baseMAG + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.MAGCost && p2TargetedStats.baseMAG < p2TargetedStats.getMAGMAX())
+            {
+                giveGearNum(-p2TargetedStats.MAGCost,true);
+                p2TargetedStats.baseMAG = p2TargetedStats.baseMAG + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();
+            }
+        }
+    }
+    
+    public void defButtonPressed()
+    {
+        defButtonPressedServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void defButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.DEFCost && p1TargetedStats.baseDEF < p1TargetedStats.getDEFMAX())
+            {
+                giveGearNum(-p1TargetedStats.DEFCost,false);
+                p1TargetedStats.baseDEF = p1TargetedStats.baseDEF + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.DEFCost && p2TargetedStats.baseDEF < p2TargetedStats.getDEFMAX())
+            {
+                giveGearNum(-p2TargetedStats.DEFCost,true);
+                p2TargetedStats.baseDEF = p2TargetedStats.baseDEF + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();
+            }
+        }
+    }
+    public void resButtonPressed()
+    {
+        resButtonPressedServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void resButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.RESCost && p1TargetedStats.baseRES < p1TargetedStats.getRESMAX())
+            {
+                giveGearNum(-p1TargetedStats.RESCost,false);
+                p1TargetedStats.baseRES = p1TargetedStats.baseRES + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.RESCost && p2TargetedStats.baseRES < p2TargetedStats.getRESMAX())
+            {
+                giveGearNum(-p2TargetedStats.RESCost,true);
+                p2TargetedStats.baseRES = p2TargetedStats.baseRES + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();
+            }
+        }
+    }
+    
+    public void spdButtonPressed()
+    {
+        spdButtonPressedServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void spdButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.SPDCost && p1TargetedStats.SPDCost < p1TargetedStats.getSPDMAX())
+            {
+                giveGearNum(-p1TargetedStats.SPDCost,false);
+                p1TargetedStats.baseSPD = p1TargetedStats.baseSPD + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.SPDCost && p2TargetedStats.SPDCost < p2TargetedStats.getSPDMAX())
+            {
+                giveGearNum(-p2TargetedStats.SPDCost,true);
+                p2TargetedStats.baseSPD = p2TargetedStats.baseSPD + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();
+            }
+        }
+    }
+
+    public void movButtonPresser()
+    {
+        movButtonPressedServerRpc();
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void movButtonPressedServerRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            if (p1GearAmount >= p1TargetedStats.MOVCost && p1TargetedStats.baseMOV < p1TargetedStats.getMOVMAX())
+            {
+                giveGearNum(-p1TargetedStats.MOVCost,false);
+                //hideArea();
+                p1TargetedStats.baseMOV = p1TargetedStats.baseMOV + 1;
+                p1TargetedStats.movLeft = p1TargetedStats.movLeft + 1;
+                updateUpgradeMenu(p1Targeted);
+                p1TargetedStats.updateStats();            
+            }
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            if (p2GearAmount >= p2TargetedStats.MOVCost && p2TargetedStats.baseMOV < p2TargetedStats.getMOVMAX())
+            {
+                giveGearNum(-p2TargetedStats.MOVCost,false);
+                //hideArea();
+                p2TargetedStats.baseMOV = p2TargetedStats.baseMOV + 1;
+                p2TargetedStats.movLeft = p2TargetedStats.movLeft + 1;
+                updateUpgradeMenu(p2Targeted);
+                p2TargetedStats.updateStats();            
+            }
+        }
+       
+    }
+
+    
+    [ClientRpc]
+    public void p2UpgradeClientRpc()
+    {
+        
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            return;
+        }
+        contextMenu.SetActive(false);
+        upgradeMenu.gameObject.SetActive(true);
+        updateUpgradeMenu(p2Targeted);
+
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -1600,39 +2367,13 @@ public class MGameController : NetworkBehaviour
         targetStats.baseHP = hp;
  
     }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void checkDieServerRpc(String name)
-    {
-        GameObject targetUnit = GameObject.Find(name);
-        Character targetStats = targetUnit.GetComponent<Character>();
-        if (targetStats.hpLeft < 0)
-            targetStats.hpLeft = 0;
-        if (targetStats.hpLeft <= 0)
-        {
-            targetStats.die();
-            passDieClientRpc(targetStats.name);
-        }
-    }
-
-    [ClientRpc]
-    public void passDieClientRpc(string name)
-    {
-        GameObject targetUnit = GameObject.Find(name);
-        Character targetStats = targetUnit.GetComponent<Character>();
-        targetStats.die();
-    }
-
-
+    
     [ClientRpc]
     public void passGearNumberClientRpc(int p1G, int p2G)
     {
         p1GearAmount = p1G;
         p2GearAmount = p2G;
     }
-    
-    
-
     [ClientRpc]
     public void passAttackActiveClientRpc(bool cond)
     {
@@ -1689,16 +2430,16 @@ public class MGameController : NetworkBehaviour
         
         Debug.Log("lName: " + lChar.name + ", rName: " + rChar.name);
         
-        charNameTXT.text = "Name: " + leftStats.charName;
-        hpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
-        strNUM.text = "" + leftStats.STR;
-        magNUM.text = "" + leftStats.MAG;
-        defNUM.text = "" + leftStats.DEF;
-        resNUM.text = "" + leftStats.RES;
-        spdNUM.text = "" + leftStats.SPD;
-        movNUM.text = "" + leftStats.MOV; 
-        movLeftTXT.SetActive(false);
-        movLeftNUMObj.SetActive(false);
+        LcharNameTXT.text = "Name: " + leftStats.charName;
+        LhpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
+        LstrNUM.text = "" + leftStats.STR;
+        LmagNUM.text = "" + leftStats.MAG;
+        LdefNUM.text = "" + leftStats.DEF;
+        LresNUM.text = "" + leftStats.RES;
+        LspdNUM.text = "" + leftStats.SPD;
+        LmovNUM.text = "" + leftStats.MOV; 
+        LmovLeftTXT.SetActive(false);
+        LmovLeftNUMObj.SetActive(false);
 
         RcharNameTXT.text = "Name: " + rightStats.charName;
         RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
@@ -1720,16 +2461,16 @@ public class MGameController : NetworkBehaviour
         Character leftStats = GameObject.Find(lName).GetComponent<Character>();
         Character rightStats = GameObject.Find(rName).GetComponent<Character>();
         
-        charNameTXT.text = "Name: " + leftStats.charName;
-        hpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
-        strNUM.text = "" + leftStats.STR;
-        magNUM.text = "" + leftStats.MAG;
-        defNUM.text = "" + leftStats.DEF;
-        resNUM.text = "" + leftStats.RES;
-        spdNUM.text = "" + leftStats.SPD;
-        movNUM.text = "" + leftStats.MOV; 
-        movLeftTXT.SetActive(false);
-        movLeftNUMObj.SetActive(false);
+        LcharNameTXT.text = "Name: " + leftStats.charName;
+        LhpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
+        LstrNUM.text = "" + leftStats.STR;
+        LmagNUM.text = "" + leftStats.MAG;
+        LdefNUM.text = "" + leftStats.DEF;
+        LresNUM.text = "" + leftStats.RES;
+        LspdNUM.text = "" + leftStats.SPD;
+        LmovNUM.text = "" + leftStats.MOV; 
+        LmovLeftTXT.SetActive(false);
+        LmovLeftNUMObj.SetActive(false);
 
         RcharNameTXT.text = "Name: " + rightStats.charName;
         RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
@@ -1960,13 +2701,12 @@ public class MGameController : NetworkBehaviour
         StartCoroutine(plusAnimation()); 
         return;
     }
-    
-    
-
     [ClientRpc]
     public void togglePlusClientRpc(bool toogle)
     {
         gearNumPlus.SetActive(toogle);
     }
+    
+  
 }
 
