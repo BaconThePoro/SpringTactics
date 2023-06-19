@@ -1415,11 +1415,71 @@ public class MGameController : NetworkBehaviour
         if (serverRpcParams.Receive.SenderClientId == 1)
         {
             p1UpgradeClientRpc();
+            
         }
         else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             p2UpgradeClientRpc();
         }
+    }
+
+    [ServerRpc(RequireOwnership=false)]
+    public void closeUpgradeMenuServerRpc(ServerRpcParams serverRpcParams)
+    {
+        if (serverRpcParams.Receive.SenderClientId == 1)
+        {
+            p1closeUpgradeMenuClientRpc();
+            
+        }
+        else if (serverRpcParams.Receive.SenderClientId == 2)
+        {
+            p2closeUpgradeMenuClientRpc();
+        }
+    }
+
+    
+    public void closeUpgradeMenu()
+    {
+       closeUpgradeMenuServerRpc(new ServerRpcParams());
+    }
+    [ClientRpc]
+    public void p1closeUpgradeMenuClientRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+        if (upgradeMenu.activeSelf == true)
+        {
+               
+            changeMode(gameMode.MapMode);
+            upgradeMenu.gameObject.SetActive(false);
+            P1updateCharInfo();
+            P1openContextMenuClientRpc(p1Targeted.transform.position);
+            clickLock = 0;
+            passClickLockClientRpc(0);
+        }
+
+    }
+    [ClientRpc]
+    public void p2closeUpgradeMenuClientRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId ==1)
+        {
+            return;
+        }
+        if (upgradeMenu.activeSelf == true)
+        {
+               
+            changeMode(gameMode.MapMode);
+            upgradeMenu.gameObject.SetActive(false);
+            P2updateCharInfo();
+            P2openContextMenuClientRpc(p2Targeted.transform.position);
+            clickLock = 0;
+            passClickLockClientRpc(0);
+        }
+
+
     }
     
      public void updateUpgradeMenu(GameObject character)
@@ -1787,20 +1847,35 @@ public class MGameController : NetworkBehaviour
             movButton.gameObject.SetActive(false);
         }
     }
-     
-     
-     public void changedName(string s)
+
+     [ServerRpc(RequireOwnership = false)]
+     public void changedNameServerRpc(string s,ServerRpcParams serverRpcParams)
      {
-         if (NetworkManager.Singleton.LocalClientId == 1)
+         if (serverRpcParams.Receive.SenderClientId == 1)
          {
              p1TargetedStats.charName = s;
-             p1Targeted.name = s;
+             changedNameClientRpc(s,p1Targeted.name);
+             
          }
-         else if (NetworkManager.Singleton.LocalClientId == 2)
+         else if (serverRpcParams.Receive.SenderClientId == 2)
          {
              p2TargetedStats.charName = s;
-             p2Targeted.name = s; 
+             changedNameClientRpc(s,p2Targeted.name);
+
          }
+         
+     }
+
+     [ClientRpc]
+     public void changedNameClientRpc(string s, string name)
+     {
+         GameObject target = GameObject.Find(name);
+         Character targetStats = target.GetComponent<Character>();
+         targetStats.charName = s;
+     }
+     public void changedName(string s)
+     {
+         changedNameServerRpc(s,new ServerRpcParams());
      }
 
      public void changedBody(Dropdown d)
@@ -1871,6 +1946,7 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.hpLeft = p1TargetedStats.hpLeft + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
+                passHpStatClientRpc(p1Targeted.name,p1TargetedStats.hpLeft,p1TargetedStats.baseHP);
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -1882,6 +1958,8 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.hpLeft = p2TargetedStats.hpLeft + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
+                passHpStatClientRpc(p2Targeted.name,p2TargetedStats.hpLeft,p2TargetedStats.baseHP);
+
             }
         }
       
@@ -1902,6 +1980,7 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.baseSTR = p1TargetedStats.baseSTR + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
+                passStrClientRpc(p1Targeted.name,p1TargetedStats.baseSTR);
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -1912,11 +1991,13 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.baseSTR = p2TargetedStats.baseSTR + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
+                passStrClientRpc(p2Targeted.name,p2TargetedStats.baseSTR);
+
             }
         }
        
     }
-
+    
     public void magButtonPressed()
     {
         magButtonPressedServerRpc();
@@ -1932,6 +2013,8 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.baseMAG = p1TargetedStats.baseMAG + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
+                passMagClientRpc(p1Targeted.name,p1TargetedStats.baseMAG);
+
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -1942,6 +2025,8 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.baseMAG = p2TargetedStats.baseMAG + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
+                passMagClientRpc(p2Targeted.name,p2TargetedStats.baseMAG);
+
             }
         }
     }
@@ -1962,6 +2047,8 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.baseDEF = p1TargetedStats.baseDEF + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
+                passDefClientRpc(p1Targeted.name,p1TargetedStats.baseDEF);
+
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -1972,6 +2059,8 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.baseDEF = p2TargetedStats.baseDEF + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
+                passDefClientRpc(p2Targeted.name,p2TargetedStats.baseDEF);
+
             }
         }
     }
@@ -1991,6 +2080,8 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.baseRES = p1TargetedStats.baseRES + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
+                passResClientRpc(p1Targeted.name,p1TargetedStats.baseRES);
+
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -2001,6 +2092,8 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.baseRES = p2TargetedStats.baseRES + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
+                passResClientRpc(p2Targeted.name,p2TargetedStats.baseRES);
+
             }
         }
     }
@@ -2021,6 +2114,8 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.baseSPD = p1TargetedStats.baseSPD + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
+                passSpdClientRpc(p1Targeted.name,p1TargetedStats.baseSPD);
+
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -2031,15 +2126,19 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.baseSPD = p2TargetedStats.baseSPD + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
+                passSpdClientRpc(p2Targeted.name,p2TargetedStats.baseSPD);
+
             }
         }
     }
 
-    public void movButtonPresser()
+    public void movButtonPressed()
     {
         movButtonPressedServerRpc();
+       
     }
     
+
     [ServerRpc(RequireOwnership = false)]
     public void movButtonPressedServerRpc()
     {
@@ -2052,7 +2151,9 @@ public class MGameController : NetworkBehaviour
                 p1TargetedStats.baseMOV = p1TargetedStats.baseMOV + 1;
                 p1TargetedStats.movLeft = p1TargetedStats.movLeft + 1;
                 updateUpgradeMenu(p1Targeted);
-                p1TargetedStats.updateStats();            
+                p1TargetedStats.updateStats(); 
+                passMovStatClientRpc(p1Targeted.name,p1TargetedStats.movLeft,p1TargetedStats.baseMOV);
+
             }
         }
         else if (NetworkManager.Singleton.LocalClientId == 2)
@@ -2064,12 +2165,14 @@ public class MGameController : NetworkBehaviour
                 p2TargetedStats.baseMOV = p2TargetedStats.baseMOV + 1;
                 p2TargetedStats.movLeft = p2TargetedStats.movLeft + 1;
                 updateUpgradeMenu(p2Targeted);
-                p2TargetedStats.updateStats();            
+                p2TargetedStats.updateStats();          
+                passMovStatClientRpc(p2Targeted.name,p2TargetedStats.movLeft,p2TargetedStats.baseMOV);
             }
         }
        
     }
 
+   
     
     [ClientRpc]
     public void p2UpgradeClientRpc()
@@ -2336,8 +2439,6 @@ public class MGameController : NetworkBehaviour
 
         }
     }
-    
-    
     [ClientRpc]
     public void passMovStatClientRpc(string name, int movleft, int mov)
     {
@@ -2348,7 +2449,49 @@ public class MGameController : NetworkBehaviour
 
     }
     
+    [ClientRpc]
+    public void passStrClientRpc(string name,int str)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.baseSTR = str;
+
+    }
         
+    [ClientRpc]
+    public void passMagClientRpc(string name,int num)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.baseMAG= num;
+
+    }
+    [ClientRpc]
+    public void passDefClientRpc(string name,int num)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.baseDEF= num;
+
+    }
+    
+    [ClientRpc]
+    public void passResClientRpc(string name,int num)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.baseRES= num;
+
+    }
+    [ClientRpc]
+    public void passSpdClientRpc(string name,int num)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.baseSPD= num;
+
+    }
+    
     [ClientRpc]
     public void passAtkStatClientRpc(string name, bool canAttack)
     {
