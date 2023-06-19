@@ -332,13 +332,21 @@ public class Character : MonoBehaviour
     public void die()
     {
         isDead = true;
-        gameObject.SetActive(false);
+        SpriteRenderer sr = gameObject.GetComponent<SpriteRenderer>();
+        sr.enabled = false;
+        GameObject weapon = transform.GetChild(1).gameObject;
+        weapon.SetActive(false);
+
     }
 
     public void undie()
     {
         isDead = false;
-        gameObject.SetActive(true);
+        SpriteRenderer sr = gameObject.GetComponent<SpriteRenderer>();
+        sr.enabled = true;
+        GameObject weapon = transform.GetChild(1).gameObject;
+        weapon.SetActive(true);
+
     }
 
     public void resetMove()

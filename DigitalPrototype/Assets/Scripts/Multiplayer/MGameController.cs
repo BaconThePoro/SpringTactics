@@ -558,25 +558,34 @@ public class MGameController : NetworkBehaviour
             mainCamera.transform.position, mainCamera.orthographicSize, savedQuaLeft, savedQuaRight);
         
         // return to either player or enemy turn
-        if (playerTurn == true)
+        if (currTurnMode == turnMode.Player1Turn)
         {
+            if (leftChar.transform.IsChildOf(p1.transform))
+            {
+                leftStats.setAttack(false);
+                passAtkStatClientRpc(leftChar.name, false);
+            }
 
-            clickLock = 0;
-            passClickLockClientRpc(clickLock);
-            leftStats.setAttack(false);
-            rightStats.setAttack(false);
-            passAtkStatClientRpc(leftChar.name, false);
-            passAtkStatClientRpc(rightChar.name, false);
+            else {
+                rightStats.setAttack(false);
+                passAtkStatClientRpc(rightChar.name,false);
+            }
         }
         else
         {
-            clickLock = 0;
-            passClickLockClientRpc(clickLock);
-            leftStats.setAttack(false);
-            rightStats.setAttack(false);
-            passAtkStatClientRpc(leftChar.name, false);
-            passAtkStatClientRpc(rightChar.name, false);
+            if (leftChar.transform.IsChildOf(p2.transform))
+            {
+                leftStats.setAttack(false);
+                passAtkStatClientRpc(leftChar.name, false);
+            }
+
+            else {
+                rightStats.setAttack(false);
+                passAtkStatClientRpc(rightChar.name,false);
+            }
         }
+        clickLock = 0;
+        passClickLockClientRpc(clickLock);
 
         // see if player gets some gears for killing something
         if (firstStats.getIsDead() == true && firstStats.transform.IsChildOf(p2.transform) == true
@@ -1827,9 +1836,9 @@ public class MGameController : NetworkBehaviour
                 damageMinusDefense = 0;
             
             damageTaker.takeDamage(damageMinusDefense);
-            passHpStatClientRpc(damageTaker.name,damageTaker.hpLeft,damageTaker.baseHP);
-            checkDieServerRpc(damageTaker.name);
+            takeDamageClientRpc(damageMinusDefense, damageTaker.name);
 
+          
         }
         // attacker has magic weapon
         else
@@ -1840,8 +1849,8 @@ public class MGameController : NetworkBehaviour
                 damageMinusDefense = 0;
 
             damageTaker.takeDamage(damageMinusDefense);
-            passHpStatClientRpc(damageTaker.name,damageTaker.hpLeft,damageTaker.baseHP);
-            checkDieServerRpc(damageTaker.name);
+            takeDamageClientRpc(damageMinusDefense, damageTaker.name);
+          
 
         }
 
@@ -1860,6 +1869,15 @@ public class MGameController : NetworkBehaviour
 
         return damageMinusDefense;
     }
+
+    [ClientRpc]
+    public void takeDamageClientRpc(int damagenumber, string name)
+    {
+        GameObject target = GameObject.Find(name);
+        Character targetStats = target.GetComponent<Character>();
+        targetStats.takeDamage(damagenumber);
+    }
+    
     
     public bool p1allDead()
     {
