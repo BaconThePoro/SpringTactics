@@ -1485,7 +1485,7 @@ public class MGameController : NetworkBehaviour
      public void updateUpgradeMenu(GameObject character)
     {
         Character charStats = character.GetComponent<Character>();
-        charName.text = charStats.name;
+        charName.text = charStats.charName;
         charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
         charImage.transform.localScale = character.transform.localScale;
 
