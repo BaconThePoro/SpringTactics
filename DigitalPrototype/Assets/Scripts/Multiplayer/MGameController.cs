@@ -853,10 +853,10 @@ public class MGameController : NetworkBehaviour
                 return;      
             p1Targeted = null;
             p1TargetedStats = null;
-            //charInfoPanel.gameObject.SetActive(false);
+            charInfoPanel.gameObject.SetActive(false);
             moveAreas[0].gameObject.SetActive(false);
             moveAreas[1].gameObject.SetActive(false);
-            //contextMenu.SetActive(false);
+            contextMenu.SetActive(false);
             overlayMap.ClearAllTiles();
             p1DeselectClientRpc();
         }
@@ -872,10 +872,10 @@ public class MGameController : NetworkBehaviour
                 return;
             p2Targeted = null;
             p2TargetedStats = null;
-            //charInfoPanel.gameObject.SetActive(false);
+            charInfoPanel.gameObject.SetActive(false);
             moveAreas[0].gameObject.SetActive(false);
             moveAreas[1].gameObject.SetActive(false);
-            //contextMenu.SetActive(false);
+            contextMenu.SetActive(false);
             overlayMap.ClearAllTiles();
             p2DeselectClientRpc();
         }
@@ -888,8 +888,8 @@ public class MGameController : NetworkBehaviour
         GameObject target = GameObject.Find(targetName);
         if ((int)serverRpcParams.Receive.SenderClientId == 1)
         {
-            //moveActive = false;
-            //attackActive = false;
+            moveActive = false;
+            attackActive = false;
             if (target.GetComponent<Character>().getIsDead() == true)
                 return;
             p1Targeted = target;
@@ -901,8 +901,8 @@ public class MGameController : NetworkBehaviour
         }
         else
         {
-            //moveActive = false;
-            //attackActive = false;
+            moveActive = false;
+            attackActive = false;
             if (target.GetComponent<Character>().getIsDead() == true)
                 return;
             p2Targeted = target;
@@ -938,6 +938,7 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        
         attackAreas[0].gameObject.SetActive(false);
         attackAreas[1].gameObject.SetActive(false);
         if (p1Targeted != null) 
@@ -948,6 +949,8 @@ public class MGameController : NetworkBehaviour
         overlayMap.ClearAllTiles(); // turn off movement highlighting
         moveActive = false;
         attackActive = false;
+        charInfoPanel.SetActive(false);
+        
     }
 
     [ClientRpc]
@@ -983,6 +986,8 @@ public class MGameController : NetworkBehaviour
         overlayMap.ClearAllTiles(); // turn off movement highlighting
         moveActive = false;
         attackActive = false;
+        charInfoPanel.SetActive(false);
+
     }
 
     [ClientRpc]
@@ -1584,14 +1589,32 @@ public class MGameController : NetworkBehaviour
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.hpLeft = hpleft;
         targetStats.baseHP = hp;
+ 
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void checkDieServerRpc(String name)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
         if (targetStats.hpLeft < 0)
             targetStats.hpLeft = 0;
         if (targetStats.hpLeft <= 0)
+        {
             targetStats.die();
-
+            passDieClientRpc(targetStats.name);
+        }
     }
-    
-     
+
+    [ClientRpc]
+    public void passDieClientRpc(string name)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        Character targetStats = targetUnit.GetComponent<Character>();
+        targetStats.die();
+    }
+
+
     [ClientRpc]
     public void passGearNumberClientRpc(int p1G, int p2G)
     {
@@ -1805,6 +1828,8 @@ public class MGameController : NetworkBehaviour
             
             damageTaker.takeDamage(damageMinusDefense);
             passHpStatClientRpc(damageTaker.name,damageTaker.hpLeft,damageTaker.baseHP);
+            checkDieServerRpc(damageTaker.name);
+
         }
         // attacker has magic weapon
         else
@@ -1816,6 +1841,7 @@ public class MGameController : NetworkBehaviour
 
             damageTaker.takeDamage(damageMinusDefense);
             passHpStatClientRpc(damageTaker.name,damageTaker.hpLeft,damageTaker.baseHP);
+            checkDieServerRpc(damageTaker.name);
 
         }
 
