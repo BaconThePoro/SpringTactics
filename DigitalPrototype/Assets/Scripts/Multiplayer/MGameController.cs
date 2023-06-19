@@ -985,7 +985,7 @@ public class MGameController : NetworkBehaviour
             p1TargetedStats = p1Targeted.GetComponent<Character>();
             p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
             //gameController.updateUpgradeMenu(currTargeted);
-            //hideArea();
+            p1hideAreaClientRpc();  
             p1SelectClientRpc(p1Targeted.transform.name);
         }
         else
@@ -998,7 +998,7 @@ public class MGameController : NetworkBehaviour
             p2TargetedStats = p2Targeted.GetComponent<Character>();
             p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
             //gameController.updateUpgradeMenu(currTargeted);
-            //hideArea();
+            p2hideAreaClientRpc();
             p2SelectClientRpc(p2Targeted.transform.name);
         }
     }
@@ -1039,6 +1039,7 @@ public class MGameController : NetworkBehaviour
         moveActive = false;
         attackActive = false;
         charInfoPanel.SetActive(false);
+        p1hideAreaClientRpc();
         
     }
 
@@ -1055,6 +1056,7 @@ public class MGameController : NetworkBehaviour
         p2Targeted = GameObject.Find(name).gameObject;
         p2TargetedStats = p2Targeted.GetComponent<Character>();
         p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
+        
     }
 
     [ClientRpc]
@@ -1076,7 +1078,7 @@ public class MGameController : NetworkBehaviour
         moveActive = false;
         attackActive = false;
         charInfoPanel.SetActive(false);
-
+        p2hideAreaClientRpc();
     }
 
     [ClientRpc]
@@ -1121,7 +1123,7 @@ public class MGameController : NetworkBehaviour
         {
             charInfoPanel.gameObject.SetActive(true);
             P1updateCharInfo();
-            //hideArea();
+            p1hideAreaClientRpc();
             //showArea(currTargeted);
 
             // move button
@@ -1168,8 +1170,7 @@ public class MGameController : NetworkBehaviour
         {
             charInfoPanel.gameObject.SetActive(true);
             P1updateCharInfo();
-            //hideArea();
-            //showArea(currTargeted);
+            p1hideAreaClientRpc();            //showArea(currTargeted);
 
             moveButton.interactable = false;
             attackButton.interactable = false;
@@ -1221,9 +1222,8 @@ public class MGameController : NetworkBehaviour
         {
             charInfoPanel.gameObject.SetActive(true);
             P2updateCharInfo();
-            //hideArea();
+            p2hideAreaClientRpc();   
             //showArea(currTargeted);
-
             // move button
             if (p2TargetedStats.movLeft > 0 && currTurnMode == turnMode.Player2Turn)
             {
@@ -1267,7 +1267,7 @@ public class MGameController : NetworkBehaviour
         {
             charInfoPanel.gameObject.SetActive(true);
             P2updateCharInfo();
-            //hideArea();
+            p2hideAreaClientRpc();
             //showArea(currTargeted);
 
             moveButton.interactable = false;
@@ -1899,14 +1899,14 @@ public class MGameController : NetworkBehaviour
      {
          if (NetworkManager.Singleton.LocalClientId == 1)
          {
-             //hideArea();
+             p1hideAreaClientRpc();
              int val = d.value;
              p1TargetedStats.changeWeapon((Character.weaponType)val);
              updateUpgradeMenu(p1Targeted);
          }
          else if(NetworkManager.Singleton.LocalClientId==2)
          {
-             //hideArea();
+             p2hideAreaClientRpc();
              int val = d.value;
              p2TargetedStats.changeWeapon((Character.weaponType)val);
              updateUpgradeMenu(p2Targeted);
@@ -1914,8 +1914,7 @@ public class MGameController : NetworkBehaviour
         
      }
 
-
-    [ClientRpc]
+     [ClientRpc]
     public void p1UpgradeClientRpc()
     {
         
@@ -1931,13 +1930,22 @@ public class MGameController : NetworkBehaviour
 
     public void hpButtonPressed()
     {
-        hpButtonPressedServerRpc();
+        hpButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
     
     [ServerRpc(RequireOwnership = false)]
-    public void hpButtonPressedServerRpc()
+    public void hpButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.HPCost && p1TargetedStats.baseHP < p1TargetedStats.getHPMAX())
             {
@@ -1949,7 +1957,7 @@ public class MGameController : NetworkBehaviour
                 passHpStatClientRpc(p1Targeted.name,p1TargetedStats.hpLeft,p1TargetedStats.baseHP);
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.HPCost && p2TargetedStats.baseHP < p2TargetedStats.getHPMAX())
             {
@@ -1962,17 +1970,26 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-      
     }
     public void strButtonPressed()
     {
-        strButtonPressedServerRpc();
+        strButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
+    
 
     [ServerRpc(RequireOwnership = false)]
-    public void strButtonPressedServerRpc()
+    public void strButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.STRCost && p1TargetedStats.baseSTR < p1TargetedStats.getSTRMAX())
             {
@@ -1983,7 +2000,7 @@ public class MGameController : NetworkBehaviour
                 passStrClientRpc(p1Targeted.name,p1TargetedStats.baseSTR);
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.STRCost && p2TargetedStats.baseSTR < p2TargetedStats.getSTRMAX())
             {
@@ -2000,12 +2017,21 @@ public class MGameController : NetworkBehaviour
     
     public void magButtonPressed()
     {
-        magButtonPressedServerRpc();
+        magButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
     [ServerRpc(RequireOwnership = false)]
-    public void magButtonPressedServerRpc()
+    public void magButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.MAGCost && p1TargetedStats.baseMAG < p1TargetedStats.getMAGMAX())
             {
@@ -2017,7 +2043,7 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.MAGCost && p2TargetedStats.baseMAG < p2TargetedStats.getMAGMAX())
             {
@@ -2033,13 +2059,22 @@ public class MGameController : NetworkBehaviour
     
     public void defButtonPressed()
     {
-        defButtonPressedServerRpc();
+        defButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void defButtonPressedServerRpc()
+    public void defButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.DEFCost && p1TargetedStats.baseDEF < p1TargetedStats.getDEFMAX())
             {
@@ -2051,7 +2086,7 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.DEFCost && p2TargetedStats.baseDEF < p2TargetedStats.getDEFMAX())
             {
@@ -2066,13 +2101,22 @@ public class MGameController : NetworkBehaviour
     }
     public void resButtonPressed()
     {
-        resButtonPressedServerRpc();
+        resButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void resButtonPressedServerRpc()
+    public void resButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.RESCost && p1TargetedStats.baseRES < p1TargetedStats.getRESMAX())
             {
@@ -2084,7 +2128,7 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.RESCost && p2TargetedStats.baseRES < p2TargetedStats.getRESMAX())
             {
@@ -2100,13 +2144,22 @@ public class MGameController : NetworkBehaviour
     
     public void spdButtonPressed()
     {
-        spdButtonPressedServerRpc();
+        spdButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void spdButtonPressedServerRpc()
+    public void spdButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.SPDCost && p1TargetedStats.SPDCost < p1TargetedStats.getSPDMAX())
             {
@@ -2118,7 +2171,7 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.SPDCost && p2TargetedStats.SPDCost < p2TargetedStats.getSPDMAX())
             {
@@ -2134,46 +2187,46 @@ public class MGameController : NetworkBehaviour
 
     public void movButtonPressed()
     {
-        movButtonPressedServerRpc();
-       
+        movButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p1Targeted);
+        }
+        else if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            updateUpgradeMenu(p2Targeted);
+        }
     }
     
-
     [ServerRpc(RequireOwnership = false)]
-    public void movButtonPressedServerRpc()
+    public void movButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == 1)
         {
             if (p1GearAmount >= p1TargetedStats.MOVCost && p1TargetedStats.baseMOV < p1TargetedStats.getMOVMAX())
             {
                 giveGearNum(-p1TargetedStats.MOVCost,false);
-                //hideArea();
                 p1TargetedStats.baseMOV = p1TargetedStats.baseMOV + 1;
                 p1TargetedStats.movLeft = p1TargetedStats.movLeft + 1;
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats(); 
                 passMovStatClientRpc(p1Targeted.name,p1TargetedStats.movLeft,p1TargetedStats.baseMOV);
-
             }
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == 2)
         {
             if (p2GearAmount >= p2TargetedStats.MOVCost && p2TargetedStats.baseMOV < p2TargetedStats.getMOVMAX())
             {
                 giveGearNum(-p2TargetedStats.MOVCost,false);
-                //hideArea();
                 p2TargetedStats.baseMOV = p2TargetedStats.baseMOV + 1;
                 p2TargetedStats.movLeft = p2TargetedStats.movLeft + 1;
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();          
                 passMovStatClientRpc(p2Targeted.name,p2TargetedStats.movLeft,p2TargetedStats.baseMOV);
+
             }
         }
-       
     }
-
-   
-    
     [ClientRpc]
     public void p2UpgradeClientRpc()
     {
@@ -2313,7 +2366,7 @@ public class MGameController : NetworkBehaviour
                 copyMoveClientRpc(p1Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
                 p1TargetedStats.movLeft--;
                 passMovStatClientRpc(p1Targeted.name, p1TargetedStats.movLeft,p1TargetedStats.baseMOV);
-                //hideArea();
+                p1hideAreaClientRpc();
                 //showArea(currTargeted);
                 P1updateCharInfo();
                 
@@ -2343,7 +2396,7 @@ public class MGameController : NetworkBehaviour
                 copyMoveClientRpc(p2Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
                 p2TargetedStats.movLeft--;
                 passMovStatClientRpc(p2Targeted.name, p2TargetedStats.movLeft,p2TargetedStats.baseMOV);
-                //hideArea();
+                p2hideAreaClientRpc();
                 //showArea(currTargeted);
                 P2updateCharInfo();
                 yield return new WaitForSeconds(delay);
@@ -2446,6 +2499,8 @@ public class MGameController : NetworkBehaviour
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.movLeft = movleft;
         targetStats.baseMOV = mov;
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
     
@@ -2455,6 +2510,8 @@ public class MGameController : NetworkBehaviour
         GameObject targetUnit = GameObject.Find(name);
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.baseSTR = str;
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
         
@@ -2464,6 +2521,8 @@ public class MGameController : NetworkBehaviour
         GameObject targetUnit = GameObject.Find(name);
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.baseMAG= num;
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
     [ClientRpc]
@@ -2472,6 +2531,8 @@ public class MGameController : NetworkBehaviour
         GameObject targetUnit = GameObject.Find(name);
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.baseDEF= num;
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
     
@@ -2481,6 +2542,8 @@ public class MGameController : NetworkBehaviour
         GameObject targetUnit = GameObject.Find(name);
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.baseRES= num;
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
     [ClientRpc]
@@ -2489,6 +2552,8 @@ public class MGameController : NetworkBehaviour
         GameObject targetUnit = GameObject.Find(name);
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.baseSPD= num;
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
     
@@ -2498,6 +2563,8 @@ public class MGameController : NetworkBehaviour
         GameObject targetUnit = GameObject.Find(name);
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.setAttack(canAttack);
+        targetStats.updateStats();
+        targetStats.updateCosts();
 
     }
     
@@ -2508,6 +2575,8 @@ public class MGameController : NetworkBehaviour
         Character targetStats = targetUnit.GetComponent<Character>();
         targetStats.hpLeft = hpleft;
         targetStats.baseHP = hp;
+        targetStats.updateStats();
+        targetStats.updateCosts();
  
     }
     
@@ -2849,6 +2918,206 @@ public class MGameController : NetworkBehaviour
     {
         gearNumPlus.SetActive(toogle);
     }
+    
+    public void deselectButtonPressed()
+    {
+        deselectButtonPressedServerRpc(new ServerRpcParams());
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+
+    public void deselectButtonPressedServerRpc(ServerRpcParams serverRpcParams)
+    {
+        
+        deselectTargetServerRpc(serverRpcParams); 
+        contextMenu.SetActive(false);
+        
+    }
+
+    public void inspectButtonPressed()
+    {
+        inspectButtonPressedServerRpc(new ServerRpcParams());
+        
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void inspectButtonPressedServerRpc(ServerRpcParams serverRpcParams)
+    {
+        if (serverRpcParams.Receive.SenderClientId == 1)
+        {
+            charInfoPanel.gameObject.SetActive(true);
+            P1updateCharInfo();
+            p1hideAreaClientRpc();
+            p1showAreaClientRpc(p1Targeted.name);
+            contextMenu.SetActive(false);
+        }
+        else if (serverRpcParams.Receive.SenderClientId == 2)
+        {
+            charInfoPanel.gameObject.SetActive(true);
+            P2updateCharInfo();
+            p2hideAreaClientRpc();
+            p2showAreaClientRpc(p2Targeted.name);
+            contextMenu.SetActive(false);
+        }
+      
+    }
+    
+    [ClientRpc]
+    public void p1hideAreaClientRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+        for (int i = 0; i < moveAreas.Length; i++)
+            moveAreas[i].SetActive(false);
+
+        for (int i = 0; i < attackAreas.Length; i++)
+            attackAreas[i].SetActive(false);
+    }
+    
+    [ClientRpc]
+    public void p2hideAreaClientRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            return;
+        }
+        for (int i = 0; i < moveAreas.Length; i++)
+            moveAreas[i].SetActive(false);
+
+        for (int i = 0; i < attackAreas.Length; i++)
+            attackAreas[i].SetActive(false);
+    }
+    
+    
+    [ClientRpc]
+    public void p1showAreaClientRpc(String unitString)
+    {
+        if (NetworkManager.Singleton.LocalClientId == 2)
+        {
+            return;
+        }
+        GameObject unit = GameObject.Find(unitString);
+        Character unitStats = unit.GetComponent<Character>();
+
+        // 1 Range
+        if (unitStats.getAttackRange() == 1)
+        {
+            if (unitStats.movLeft < 0 || unitStats.movLeft > moveAreas.Length || unitStats.movLeft >= attackAreas.Length)
+            {
+                //Debug.Log("movLeft out of range in showArea!!!");
+                p1hideAreaClientRpc();
+                
+            }
+            else if (unitStats.movLeft == 0)
+            {
+                p1hideAreaClientRpc();
+
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+            }
+            else
+            {
+                moveAreas[unitStats.movLeft - 1].SetActive(true);
+                moveAreas[unitStats.movLeft - 1].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+            }
+        }
+        // 2 Range
+        else if (unitStats.getAttackRange() == 2)
+        {
+            if (unitStats.movLeft > moveAreas.Length || unitStats.movLeft + 1 >= attackAreas.Length)
+            {
+                Debug.Log("movLeft out of range in showArea!!!");
+                p1hideAreaClientRpc();
+
+            }
+            else if (unitStats.movLeft == 0)
+            {
+                p1hideAreaClientRpc();
+
+                attackAreas[unitStats.movLeft + 1].SetActive(true);
+                attackAreas[unitStats.movLeft + 1].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+            }
+            else
+            {
+                moveAreas[unitStats.movLeft - 1].SetActive(true);
+                moveAreas[unitStats.movLeft - 1].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft + 1].SetActive(true);
+                attackAreas[unitStats.movLeft + 1].transform.position = unit.transform.position;
+            }
+        }
+
+    }
+    
+    [ClientRpc]
+    public void p2showAreaClientRpc(String unitString)
+    {
+        if (NetworkManager.Singleton.LocalClientId == 1)
+        {
+            return;
+        }
+        
+        GameObject unit = GameObject.Find(unitString);
+        Character unitStats = unit.GetComponent<Character>();
+
+        // 1 Range
+        if (unitStats.getAttackRange() == 1)
+        {
+            if (unitStats.movLeft < 0 || unitStats.movLeft > moveAreas.Length || unitStats.movLeft >= attackAreas.Length)
+            {
+                //Debug.Log("movLeft out of range in showArea!!!");
+                p2hideAreaClientRpc();
+
+            }
+            else if (unitStats.movLeft == 0)
+            {
+                p2hideAreaClientRpc();
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+            }
+            else
+            {
+                moveAreas[unitStats.movLeft - 1].SetActive(true);
+                moveAreas[unitStats.movLeft - 1].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+            }
+        }
+        // 2 Range
+        else if (unitStats.getAttackRange() == 2)
+        {
+            if (unitStats.movLeft > moveAreas.Length || unitStats.movLeft + 1 >= attackAreas.Length)
+            {
+                Debug.Log("movLeft out of range in showArea!!!");
+                p2hideAreaClientRpc();            }
+            else if (unitStats.movLeft == 0)
+            {
+                p2hideAreaClientRpc();          
+                attackAreas[unitStats.movLeft + 1].SetActive(true);
+                attackAreas[unitStats.movLeft + 1].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+            }
+            else
+            {
+                moveAreas[unitStats.movLeft - 1].SetActive(true);
+                moveAreas[unitStats.movLeft - 1].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft].SetActive(true);
+                attackAreas[unitStats.movLeft].transform.position = unit.transform.position;
+                attackAreas[unitStats.movLeft + 1].SetActive(true);
+                attackAreas[unitStats.movLeft + 1].transform.position = unit.transform.position;
+            }
+        }
+
+    }
+
     
   
 }
