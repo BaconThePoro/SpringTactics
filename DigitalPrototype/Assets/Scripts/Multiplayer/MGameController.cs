@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using Vector3 = UnityEngine.Vector3;
 using Unity.Netcode;
-using UnityEngine.Networking.Types;
+using UnityEngine.Networking;
 
 public class MGameController : NetworkBehaviour
 {
@@ -1091,7 +1091,7 @@ public class MGameController : NetworkBehaviour
     public void P1openContextMenuClientRpc(Vector3 mousePos)
     {
         //Ignore for player 2. 
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == 2 || NetworkManager.Singleton.LocalClientId == 0)
         {
             return;
         }
