@@ -886,7 +886,11 @@ public class MGameController : NetworkBehaviour
     {
         // if not in mapmode dont do anything
         if (currGameMode != gameMode.MapMode)
+        {
+            Debug.Log("tried to end turn while NOT in Mapmode");
             return;
+        }
+            
 
         // player 1 turn
         if (currTurnMode == turnMode.Player1Turn)
@@ -898,6 +902,7 @@ public class MGameController : NetworkBehaviour
             }
             else
             {
+                p1DeselectClientRpc();
                 changeTurn(turnMode.Player2Turn);
                 resetAllMoveServerRpc();
                 resetAllAttackServerRpc();
@@ -913,6 +918,7 @@ public class MGameController : NetworkBehaviour
             }
             else
             {
+                p2DeselectClientRpc();
                 changeTurn(turnMode.Player1Turn);
                 resetAllMoveServerRpc();
                 resetAllAttackServerRpc();
@@ -1426,6 +1432,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership=false)]
     public void closeUpgradeMenuServerRpc(ServerRpcParams serverRpcParams)
     {
+        changeMode(gameMode.MapMode);
         if (serverRpcParams.Receive.SenderClientId == 1)
         {
             p1closeUpgradeMenuClientRpc();
@@ -1458,6 +1465,7 @@ public class MGameController : NetworkBehaviour
             P1openContextMenuClientRpc(p1Targeted.transform.position);
             clickLock = 0;
             passClickLockClientRpc(0);
+            changeMode(gameMode.MapMode);
         }
 
     }
@@ -1477,6 +1485,7 @@ public class MGameController : NetworkBehaviour
             P2openContextMenuClientRpc(p2Targeted.transform.position);
             clickLock = 0;
             passClickLockClientRpc(0);
+            changeMode(gameMode.MapMode);
         }
 
 
@@ -1875,6 +1884,9 @@ public class MGameController : NetworkBehaviour
      }
      public void changedName(string s)
      {
+         if (s == "")
+             return;
+         
          changedNameServerRpc(s,new ServerRpcParams());
      }
 
