@@ -484,15 +484,15 @@ public class MGameController : NetworkBehaviour
         gearNumPanel.SetActive(false);
         settingsPanel.SetActive(false);
         deactivateAllChildren();
+        // reactivate participants
+        leftChar.SetActive(true);
+        rightChar.SetActive(true);
         Mapmode.SetActive(false);
         Battlemode.SetActive(true);
         mainCamera.orthographicSize = camBattleSize;
         mainCamera.transform.position = camBattlePos;
         charInfoPanel.SetActive(true);
         charInfoPanelR.SetActive(true);
-        // reactivate participants
-        leftChar.SetActive(true);
-        rightChar.SetActive(true);
         // copy initial position
         leftChar.transform.position = lPos;
         rightChar.transform.position = rPos;
@@ -513,6 +513,9 @@ public class MGameController : NetworkBehaviour
         p1DeselectClientRpc();
         p2DeselectClientRpc();
         deactivateAllChildren();
+        // reactivate participants
+        leftChar.SetActive(true);
+        rightChar.SetActive(true);
         Mapmode.SetActive(false);
         Battlemode.SetActive(true);
         savedCamSize = mainCamera.orthographicSize;
@@ -520,9 +523,6 @@ public class MGameController : NetworkBehaviour
         charInfoPanel.SetActive(true);
         charInfoPanelR.SetActive(true);
         updateBattleStats(leftChar, rightChar);
-        // reactivate participants
-        leftChar.SetActive(true);
-        rightChar.SetActive(true);
         // save position and rotation for both participants (and camera) before we move them
         savedPosLeft = leftChar.transform.position;
         savedPosRight = rightChar.transform.position;
@@ -2682,6 +2682,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     private void passBattleStatsClientRpc(string lName, string rName)
     {
+        Debug.Log("lName: " + lName + ", rName: " + rName);
         Character leftStats = GameObject.Find(lName).GetComponent<Character>();
         Character rightStats = GameObject.Find(rName).GetComponent<Character>();
         
