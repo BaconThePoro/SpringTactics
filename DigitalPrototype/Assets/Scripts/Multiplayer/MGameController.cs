@@ -127,6 +127,8 @@ public class MGameController : NetworkBehaviour
     public GameObject damageTXTPanel = null;
     private TMPro.TextMeshProUGUI damageTXT = null;
     private GameObject gearNumPlus = null;
+    public GameObject p1Victory = null;
+    public GameObject p2Victory = null; 
     
     // upgrade panel stuff
     private TMPro.TMP_InputField charName = null;
@@ -1286,7 +1288,10 @@ public class MGameController : NetworkBehaviour
     
     
      public void P1updateCharInfo()
-    {
+     {
+         if (p1Targeted == null)
+             return; 
+        
         LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
         LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
         LstrNUM.text = "" + p1TargetedStats.STR;
@@ -1312,6 +1317,9 @@ public class MGameController : NetworkBehaviour
     
     public void P2updateCharInfo()
     {
+        if (p2Targeted == null)
+            return; 
+        
         LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
         LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
         LstrNUM.text = "" + p2TargetedStats.STR;
@@ -1872,7 +1880,6 @@ public class MGameController : NetworkBehaviour
              changedNameClientRpc(s,p2Targeted.name);
 
          }
-         
      }
 
      [ClientRpc]
@@ -1892,38 +1899,65 @@ public class MGameController : NetworkBehaviour
 
      public void changedBody(Dropdown d)
      {
-         if (NetworkManager.Singleton.LocalClientId == 1)
+         changedBodyServerRpc(d.value, new ServerRpcParams());
+     }
+     
+     [ClientRpc]
+     public void changedBodyClientRpc(int val, string name)
+     {
+         GameObject unit = GameObject.Find(name);
+         unit.GetComponent<Character>().changeBody((Character.bodyType)val);
+         updateUpgradeMenu(unit);
+     }
+     
+     [ServerRpc(RequireOwnership = false)]
+     public void changedBodyServerRpc(int val, ServerRpcParams serverRpcParams)
+     {
+         if (serverRpcParams.Receive.SenderClientId == 1)
          {
-             int val = d.value;
              p1TargetedStats.changeBody((Character.bodyType)val);
              updateUpgradeMenu(p1Targeted);
+             changedBodyClientRpc(val, p1Targeted.name);
          }
-         else if (NetworkManager.Singleton.LocalClientId == 2)
+         else if (serverRpcParams.Receive.SenderClientId == 2)
          {
-             int val = d.value;
              p2TargetedStats.changeBody((Character.bodyType)val);
              updateUpgradeMenu(p2Targeted);
+             changedBodyClientRpc(val, p2Targeted.name);
          }
-        
      }
 
-     public void changedWeapon(Dropdown d)
+     [ClientRpc]
+     public void changedWeaponClientRpc(int val, string name)
      {
-         if (NetworkManager.Singleton.LocalClientId == 1)
+         GameObject unit = GameObject.Find(name);
+         unit.GetComponent<Character>().changeWeapon((Character.weaponType)val);
+         updateUpgradeMenu(unit);
+     }
+
+     [ServerRpc(RequireOwnership = false)]
+     public void changedWeaponServerRpc(int val, ServerRpcParams serverRpcParams)
+     {
+         if (serverRpcParams.Receive.SenderClientId == 1)
          {
              p1hideAreaClientRpc();
-             int val = d.value;
              p1TargetedStats.changeWeapon((Character.weaponType)val);
              updateUpgradeMenu(p1Targeted);
+             changedWeaponClientRpc(val, p1Targeted.name);
          }
-         else if(NetworkManager.Singleton.LocalClientId==2)
+         else if(serverRpcParams.Receive.SenderClientId == 2)
          {
              p2hideAreaClientRpc();
-             int val = d.value;
              p2TargetedStats.changeWeapon((Character.weaponType)val);
              updateUpgradeMenu(p2Targeted);
+             changedWeaponClientRpc(val, p2Targeted.name);
          }
-        
+     }
+     
+     
+     public void changedWeapon(Dropdown d)
+     {
+        changedWeaponServerRpc(d.value, new ServerRpcParams());
      }
 
      [ClientRpc]
@@ -2024,7 +2058,6 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-       
     }
     
     public void magButtonPressed()
@@ -2824,17 +2857,40 @@ public class MGameController : NetworkBehaviour
         if (p1allDead()) 
         {
             //Debug.Log("All allies dead you lose");
-            //StartCoroutine(defeat());
+            p1VictoryClientRpc();
         }
         // all enemy characters dead
         else if (p2allDead())
         {
             //Debug.Log("All enemies dead you win");
-            //StartCoroutine(victory());
+            p2VictoryClientRpc();
         }
 
         return damageMinusDefense;
     }
+    
+    [ClientRpc]
+    private void p1VictoryClientRpc()
+    {
+        p1Victory.SetActive(true);
+        Mapmode.SetActive(false);
+        turnPanel.SetActive(false);
+        gearNumPanel.SetActive(false);
+        charInfoPanel.SetActive(false);
+        charInfoPanelR.SetActive(false);
+    }
+
+    [ClientRpc]
+    private void p2VictoryClientRpc()
+    {
+        p2Victory.SetActive(true);
+        Mapmode.SetActive(false);
+        turnPanel.SetActive(false);
+        gearNumPanel.SetActive(false);
+        charInfoPanel.SetActive(false);
+        charInfoPanelR.SetActive(false);
+    }
+    
 
     [ClientRpc]
     public void takeDamageClientRpc(int damagenumber, string name)
@@ -2941,16 +2997,13 @@ public class MGameController : NetworkBehaviour
 
     public void deselectButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        
         deselectTargetServerRpc(serverRpcParams); 
         contextMenu.SetActive(false);
-        
     }
 
     public void inspectButtonPressed()
     {
         inspectButtonPressedServerRpc(new ServerRpcParams());
-        
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -2972,7 +3025,6 @@ public class MGameController : NetworkBehaviour
             p2showAreaClientRpc(p2Targeted.name);
             contextMenu.SetActive(false);
         }
-      
     }
     
     [ClientRpc]
@@ -3002,7 +3054,6 @@ public class MGameController : NetworkBehaviour
         for (int i = 0; i < attackAreas.Length; i++)
             attackAreas[i].SetActive(false);
     }
-    
     
     [ClientRpc]
     public void p1showAreaClientRpc(String unitString)
@@ -3066,7 +3117,6 @@ public class MGameController : NetworkBehaviour
                 attackAreas[unitStats.movLeft + 1].transform.position = unit.transform.position;
             }
         }
-
     }
     
     [ClientRpc]
