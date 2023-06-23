@@ -809,29 +809,38 @@ public class MGameController : NetworkBehaviour
     private void turnPopupClientRpc()
     {
         turnPopupPanel.SetActive(true);
-        SpriteRenderer sR = turnPopupPanel.GetComponent<SpriteRenderer>();
-        sR.color = new Color(sR.color.r, sR.color.g, sR.color.b, 1f);
+        Image img = turnPopupPanel.GetComponent<Image>();
+        img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
+        GameObject turnPopupText = turnPopupPanel.transform.GetChild(0).gameObject;
+        TextMeshProUGUI tmp = turnPopupText.GetComponent<TextMeshProUGUI>();
+        tmp.color = new Color(tmp.color.r, tmp.color.g, tmp.color.b, 1f);
 
         if (currTurnMode == turnMode.Player1Turn)
-            turnPopupPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Player 1's Turn";
+            tmp.text = "Player 1's Turn";
         else
-            turnPopupPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Player 2's Turn";
+            tmp.text = "Player 2's Turn";
         
         StartCoroutine(turnPopup());
     }
 
     private IEnumerator turnPopup()
     {
-        SpriteRenderer sR = turnPopupPanel.GetComponent<SpriteRenderer>();
-        sR.color = new Color(sR.color.r, sR.color.g, sR.color.b, sR.color.a * 0.9f);
-        
-        if (sR.color.a <= 0.05)
+        Image img = turnPopupPanel.GetComponent<Image>();
+        TextMeshProUGUI tmp = turnPopupPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+
+        for (int i = 0; i < 40; i++)
         {
-            turnPopupPanel.SetActive(false);
-            yield break;
-        }
+            img.color = new Color(img.color.r, img.color.g, img.color.b, img.color.a - 0.025f);
+            tmp.color = new Color(tmp.color.r, tmp.color.g, tmp.color.b, tmp.color.a - 0.025f);
         
-        yield return new WaitForSeconds(delay);
+            if (img.color.a <= 0.05f)
+            {
+                turnPopupPanel.SetActive(false);
+                yield break;
+            }
+        
+            yield return new WaitForSeconds(0.05f);
+        }
     }
 
     Vector3Int GetMousePosition()
