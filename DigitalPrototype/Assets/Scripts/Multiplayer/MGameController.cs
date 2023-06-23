@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using Vector3 = UnityEngine.Vector3;
 using Unity.Netcode;
+using Unity.Services.Relay;
 using UnityEngine.Networking;
 
 public class MGameController : NetworkBehaviour
@@ -130,7 +131,9 @@ public class MGameController : NetworkBehaviour
     private GameObject gearNumPlus = null;
     public GameObject p1Victory = null;
     public GameObject p2Victory = null;
-    public GameObject turnPopupPanel = null; 
+    public GameObject turnPopupPanel = null;
+    public GameObject joinCodePanel = null;
+    private TMPro.TextMeshProUGUI joinCodeTXT = null;
     
     // upgrade panel stuff
     private TMPro.TMP_InputField charName = null;
@@ -260,6 +263,7 @@ public class MGameController : NetworkBehaviour
         mainCamera = mainCameraObj.GetComponent<Camera>();
         damageTXT = damageTXTPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>();
         gearNumPlus = gearNumPanel.transform.GetChild(2).gameObject;
+        joinCodeTXT = joinCodePanel.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
         
         // initialize p1
         p1 = transform.GetChild(0).gameObject;
@@ -366,6 +370,12 @@ public class MGameController : NetworkBehaviour
         }
     }
 
+    public void changeJoinCode(string joinCode)
+    {
+        if (joinCode != null)
+            joinCodeTXT.text = joinCode; 
+    }
+    
     [ServerRpc(RequireOwnership = false)]
     public void validateAttackServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
     {
@@ -1135,6 +1145,10 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        
+        if (p1Targeted == null)
+            return;
+        
         contextMenu.SetActive(true);
 
         menuOffset = new Vector3(Screen.width*0.11f, -Screen.height*0.16f, 0);
@@ -1234,7 +1248,11 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
-            contextMenu.SetActive(true);
+        
+        if (p2Targeted == null)
+            return;
+        
+        contextMenu.SetActive(true);
 
         menuOffset = new Vector3(Screen.width*0.11f, -Screen.height*0.16f, 0);
         Vector3 menuPos = Camera.main.WorldToScreenPoint(mousePos);
@@ -1385,6 +1403,8 @@ public class MGameController : NetworkBehaviour
         //For Player 1 movement 
         if (NetworkManager.Singleton.LocalClientId == 1 && currTurnMode == turnMode.Player1Turn)
         {
+            if (p1Targeted == null)
+                return;
             moveActive = true;
             attackActive = false;
             List<PathNode> vectorPath = new List<PathNode>();
@@ -1410,6 +1430,8 @@ public class MGameController : NetworkBehaviour
         //For Player 2 movement 
         if (NetworkManager.Singleton.LocalClientId == 2 && currTurnMode == turnMode.Player2Turn)
         {
+            if (p2Targeted == null)
+                return;
             moveActive = true;
             attackActive = false;
             List<PathNode> vectorPath = new List<PathNode>();
@@ -1501,6 +1523,8 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        if (p1Targeted == null)
+            return;
         if (upgradeMenu.activeSelf == true)
         {
                
@@ -1512,7 +1536,6 @@ public class MGameController : NetworkBehaviour
             passClickLockClientRpc(0);
             changeMode(gameMode.MapMode);
         }
-
     }
     
     [ClientRpc]
@@ -1522,6 +1545,8 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        if (p2Targeted == null)
+            return;
         if (upgradeMenu.activeSelf == true)
         {
                
@@ -2892,13 +2917,13 @@ public class MGameController : NetworkBehaviour
         if (p1allDead()) 
         {
             //Debug.Log("All allies dead you lose");
-            p1VictoryClientRpc();
+            p2VictoryClientRpc();
         }
         // all enemy characters dead
         else if (p2allDead())
         {
             //Debug.Log("All enemies dead you win");
-            p2VictoryClientRpc();
+            p1VictoryClientRpc();
         }
 
         return damageMinusDefense;

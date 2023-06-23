@@ -16,7 +16,6 @@ using UnityEngine.UI;
 
 public class Relay : MonoBehaviour
 {
-    public GameObject textBox = null;
     private async void Start()
     {
         await UnityServices.InitializeAsync();
@@ -25,7 +24,9 @@ public class Relay : MonoBehaviour
         {
             Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
         };
-        await AuthenticationService.Instance.SignInAnonymouslyAsync(); 
+        
+        if (!AuthenticationService.Instance.IsSignedIn)
+            await AuthenticationService.Instance.SignInAnonymouslyAsync(); 
     }
     
     public async void CreateRelay()
@@ -40,6 +41,10 @@ public class Relay : MonoBehaviour
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
             NetworkManager.Singleton.StartHost();
+            
+            GameObject gC = GameObject.Find("GameController").gameObject;
+            if (gC !=null)
+                gC.GetComponent<MGameController>().changeJoinCode(joinCode);
         }
         catch (RelayServiceException e)
         {
@@ -62,10 +67,5 @@ public class Relay : MonoBehaviour
         {
             Debug.Log(e);
         }
-    }
-
-    public void joinButton()
-    {
-        JoinRelay(textBox.GetComponent<TMP_InputField>().text);
     }
 }
