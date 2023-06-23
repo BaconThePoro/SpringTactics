@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -128,7 +129,8 @@ public class MGameController : NetworkBehaviour
     private TMPro.TextMeshProUGUI damageTXT = null;
     private GameObject gearNumPlus = null;
     public GameObject p1Victory = null;
-    public GameObject p2Victory = null; 
+    public GameObject p2Victory = null;
+    public GameObject turnPopupPanel = null; 
     
     // upgrade panel stuff
     private TMPro.TMP_InputField charName = null;
@@ -800,6 +802,36 @@ public class MGameController : NetworkBehaviour
     public void updateTurnTextClientRpc(string s)
     {
         turnModeTXT.text = s;
+        turnPopupClientRpc();
+    }
+
+    [ClientRpc]
+    private void turnPopupClientRpc()
+    {
+        turnPopupPanel.SetActive(true);
+        SpriteRenderer sR = turnPopupPanel.GetComponent<SpriteRenderer>();
+        sR.color = new Color(sR.color.r, sR.color.g, sR.color.b, 1f);
+
+        if (currTurnMode == turnMode.Player1Turn)
+            turnPopupPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Player 1's Turn";
+        else
+            turnPopupPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Player 2's Turn";
+        
+        StartCoroutine(turnPopup());
+    }
+
+    private IEnumerator turnPopup()
+    {
+        SpriteRenderer sR = turnPopupPanel.GetComponent<SpriteRenderer>();
+        sR.color = new Color(sR.color.r, sR.color.g, sR.color.b, sR.color.a * 0.9f);
+        
+        if (sR.color.a <= 0.05)
+        {
+            turnPopupPanel.SetActive(false);
+            yield break;
+        }
+        
+        yield return new WaitForSeconds(delay);
     }
 
     Vector3Int GetMousePosition()
@@ -1023,8 +1055,6 @@ public class MGameController : NetworkBehaviour
         p1Targeted = GameObject.Find(name).gameObject;
         p1TargetedStats = p1Targeted.GetComponent<Character>();
         p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
-        
-        
     }
 
     [ClientRpc]
@@ -1048,7 +1078,6 @@ public class MGameController : NetworkBehaviour
         attackActive = false;
         charInfoPanel.SetActive(false);
         p1hideAreaClientRpc();
-        
     }
 
     [ClientRpc]
@@ -1286,7 +1315,6 @@ public class MGameController : NetworkBehaviour
         }
     }
     
-    
      public void P1updateCharInfo()
      {
          if (p1Targeted == null)
@@ -1451,12 +1479,12 @@ public class MGameController : NetworkBehaviour
             p2closeUpgradeMenuClientRpc();
         }
     }
-
     
     public void closeUpgradeMenu()
     {
        closeUpgradeMenuServerRpc(new ServerRpcParams());
     }
+    
     [ClientRpc]
     public void p1closeUpgradeMenuClientRpc()
     {
@@ -1477,6 +1505,7 @@ public class MGameController : NetworkBehaviour
         }
 
     }
+    
     [ClientRpc]
     public void p2closeUpgradeMenuClientRpc()
     {
@@ -1495,8 +1524,6 @@ public class MGameController : NetworkBehaviour
             passClickLockClientRpc(0);
             changeMode(gameMode.MapMode);
         }
-
-
     }
     
      public void updateUpgradeMenu(GameObject character)
@@ -1878,7 +1905,6 @@ public class MGameController : NetworkBehaviour
          {
              p2TargetedStats.charName = s;
              changedNameClientRpc(s,p2Targeted.name);
-
          }
      }
 
@@ -1889,6 +1915,7 @@ public class MGameController : NetworkBehaviour
          Character targetStats = target.GetComponent<Character>();
          targetStats.charName = s;
      }
+     
      public void changedName(string s)
      {
          if (s == "")
@@ -1954,13 +1981,12 @@ public class MGameController : NetworkBehaviour
          }
      }
      
-     
      public void changedWeapon(Dropdown d)
      {
         changedWeaponServerRpc(d.value, new ServerRpcParams());
      }
 
-     [ClientRpc]
+    [ClientRpc]
     public void p1UpgradeClientRpc()
     {
         
@@ -2013,10 +2039,10 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passHpStatClientRpc(p2Targeted.name,p2TargetedStats.hpLeft,p2TargetedStats.baseHP);
-
             }
         }
     }
+    
     public void strButtonPressed()
     {
         strButtonPressedServerRpc(new ServerRpcParams());
@@ -2055,7 +2081,6 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passStrClientRpc(p2Targeted.name,p2TargetedStats.baseSTR);
-
             }
         }
     }
@@ -2073,6 +2098,7 @@ public class MGameController : NetworkBehaviour
             updateUpgradeMenu(p2Targeted);
         }
     }
+    
     [ServerRpc(RequireOwnership = false)]
     public void magButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
