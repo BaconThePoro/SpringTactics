@@ -33,6 +33,7 @@ public class Character : MonoBehaviour
     private bool isDead = false;
     private bool canAttack = true;
     private bool isEnemy = false;
+    public bool statReveal = false; 
     public int playerNum = 0; 
     public int HPCost = 0;
     public int STRCost = 0;

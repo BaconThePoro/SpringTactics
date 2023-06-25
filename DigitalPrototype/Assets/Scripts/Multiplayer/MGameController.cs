@@ -520,6 +520,9 @@ public class MGameController : NetworkBehaviour
         rightChar.transform.position = rPos;
         leftChar.transform.rotation = lQua;
         rightChar.transform.rotation = rQua;
+        //
+        leftChar.GetComponent<Character>().statReveal = true;
+        rightChar.GetComponent<Character>().statReveal = true;
     }
 
     public IEnumerator continueBattle(GameObject leftChar, GameObject rightChar, bool playerTurn, int battleRange)
@@ -1353,56 +1356,90 @@ public class MGameController : NetworkBehaviour
      public void P1updateCharInfo()
      {
          if (p1Targeted == null)
-             return; 
-        
-        LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
-        LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
-        LstrNUM.text = "" + p1TargetedStats.STR;
-        LmagNUM.text = "" + p1TargetedStats.MAG;
-        LdefNUM.text = "" + p1TargetedStats.DEF;
-        LresNUM.text = "" + p1TargetedStats.RES;
-        LspdNUM.text = "" + p1TargetedStats.SPD;
+             return;
 
-        if (!p1Targeted.transform.IsChildOf(p2.transform))
-        {
-            LmovNUM.text = "" + p1TargetedStats.MOV;
-            LmovLeftNUM.text = "" + p1TargetedStats.movLeft;
-            LmovLeftTXT.SetActive(true);
-            LmovLeftNUMObj.SetActive(true);
-        }
-        else
-        {
-            LmovNUM.text = "" + p1TargetedStats.MOV;
-            LmovLeftTXT.SetActive(false);
-            LmovLeftNUMObj.SetActive(false);
-        }
-    }
+         // if an enemy and not yet revealed
+         if (p1Targeted.transform.IsChildOf(p2.transform) && p1TargetedStats.statReveal == false)
+         {
+             LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
+             LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
+             LstrNUM.text = "??";
+             LmagNUM.text = "??";
+             LdefNUM.text = "??";
+             LresNUM.text = "??";
+             LspdNUM.text = "??";
+             LmovNUM.text = "??";
+             LmovLeftTXT.SetActive(false);
+             LmovLeftNUMObj.SetActive(false);
+         }
+         else
+         {
+             LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
+             LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
+             LstrNUM.text = "" + p1TargetedStats.STR;
+             LmagNUM.text = "" + p1TargetedStats.MAG;
+             LdefNUM.text = "" + p1TargetedStats.DEF;
+             LresNUM.text = "" + p1TargetedStats.RES;
+             LspdNUM.text = "" + p1TargetedStats.SPD;
+
+             if (!p1Targeted.transform.IsChildOf(p2.transform))
+             {
+                 LmovNUM.text = "" + p1TargetedStats.MOV;
+                 LmovLeftNUM.text = "" + p1TargetedStats.movLeft;
+                 LmovLeftTXT.SetActive(true);
+                 LmovLeftNUMObj.SetActive(true);
+             }
+             else
+             {
+                 LmovNUM.text = "" + p1TargetedStats.MOV;
+                 LmovLeftTXT.SetActive(false);
+                 LmovLeftNUMObj.SetActive(false);
+             }
+         }
+     }
     
     public void P2updateCharInfo()
     {
         if (p2Targeted == null)
-            return; 
-        
-        LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
-        LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
-        LstrNUM.text = "" + p2TargetedStats.STR;
-        LmagNUM.text = "" + p2TargetedStats.MAG;
-        LdefNUM.text = "" + p2TargetedStats.DEF;
-        LresNUM.text = "" + p2TargetedStats.RES;
-        LspdNUM.text = "" + p2TargetedStats.SPD;
+            return;
 
-        if (!p2Targeted.transform.IsChildOf(p2.transform))
+        // if an enemy and not yet revealed
+        if (p2Targeted.transform.IsChildOf(p1.transform) && p2TargetedStats.statReveal == false)
         {
-            LmovNUM.text = "" + p2TargetedStats.MOV;
-            LmovLeftNUM.text = "" + p2TargetedStats.movLeft;
-            LmovLeftTXT.SetActive(true);
-            LmovLeftNUMObj.SetActive(true);
+            LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
+            LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
+            LstrNUM.text = "??";
+            LmagNUM.text = "??";
+            LdefNUM.text = "??";
+            LresNUM.text = "??";
+            LspdNUM.text = "??";
+            LmovNUM.text = "??";
+            LmovLeftTXT.SetActive(false);
+            LmovLeftNUMObj.SetActive(false);
         }
         else
         {
-            LmovNUM.text = "" + p2TargetedStats.MOV;
-            LmovLeftTXT.SetActive(false);
-            LmovLeftNUMObj.SetActive(false);
+            LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
+            LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
+            LstrNUM.text = "" + p2TargetedStats.STR;
+            LmagNUM.text = "" + p2TargetedStats.MAG;
+            LdefNUM.text = "" + p2TargetedStats.DEF;
+            LresNUM.text = "" + p2TargetedStats.RES;
+            LspdNUM.text = "" + p2TargetedStats.SPD;
+
+            if (!p2Targeted.transform.IsChildOf(p1.transform))
+            {
+                LmovNUM.text = "" + p2TargetedStats.MOV;
+                LmovLeftNUM.text = "" + p2TargetedStats.movLeft;
+                LmovLeftTXT.SetActive(true);
+                LmovLeftNUMObj.SetActive(true);
+            }
+            else
+            {
+                LmovNUM.text = "" + p2TargetedStats.MOV;
+                LmovLeftTXT.SetActive(false);
+                LmovLeftNUMObj.SetActive(false);
+            }
         }
     }
     
@@ -3277,6 +3314,11 @@ public class MGameController : NetworkBehaviour
     public void openTutorial()
     {
         SceneManager.LoadScene("TutorialScene", LoadSceneMode.Additive);
+    }
+
+    public void returnMainMenu()
+    {
+        SceneManager.LoadScene("MenuScene", LoadSceneMode.Single);
     }
     
   
