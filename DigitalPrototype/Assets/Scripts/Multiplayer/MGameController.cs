@@ -10,6 +10,7 @@ using Vector3 = UnityEngine.Vector3;
 using Unity.Netcode;
 using Unity.Services.Relay;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class MGameController : NetworkBehaviour
 {
@@ -121,7 +122,8 @@ public class MGameController : NetworkBehaviour
     // UI stuff
     public GameObject turnPanel = null;
     public GameObject gearNumPanel = null;
-    public GameObject settingsPanel = null; 
+    public GameObject settingsPanel = null;
+    public GameObject pauseMenu = null;
     public GameObject Mapmode = null;
     public GameObject Battlemode = null;
     public GameObject mainCameraObj = null;
@@ -132,7 +134,10 @@ public class MGameController : NetworkBehaviour
     public GameObject p1Victory = null;
     public GameObject p2Victory = null;
     public GameObject turnPopupPanel = null;
-    public GameObject joinCodePanel = null;
+    public GameObject joinCodeUI = null;
+    private GameObject joinCodePanel = null;
+    private GameObject joinCodeL = null;
+    private GameObject joinCodeR = null; 
     private TMPro.TextMeshProUGUI joinCodeTXT = null;
     
     // upgrade panel stuff
@@ -263,7 +268,10 @@ public class MGameController : NetworkBehaviour
         mainCamera = mainCameraObj.GetComponent<Camera>();
         damageTXT = damageTXTPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>();
         gearNumPlus = gearNumPanel.transform.GetChild(2).gameObject;
-        joinCodeTXT = joinCodePanel.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        joinCodePanel = joinCodeUI.transform.GetChild(0).gameObject;
+        joinCodeTXT = joinCodePanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        joinCodeL = joinCodeUI.transform.GetChild(2).gameObject;
+        joinCodeR = joinCodeUI.transform.GetChild(1).gameObject;
         
         // initialize p1
         p1 = transform.GetChild(0).gameObject;
@@ -3238,9 +3246,38 @@ public class MGameController : NetworkBehaviour
                 attackAreas[unitStats.movLeft + 1].transform.position = unit.transform.position;
             }
         }
-
     }
 
+    public void openJoinCodePanel()
+    {
+        joinCodePanel.SetActive(true);
+        joinCodeL.SetActive(false);
+        joinCodeR.SetActive(true);
+    }
+
+    public void closeJoinCodePanel()
+    {
+        joinCodePanel.SetActive(false);
+        joinCodeL.SetActive(true);
+        joinCodeR.SetActive(false);
+    }
+
+    public void openPauseMenu()
+    {
+        changeMode(gameMode.MenuMode);
+        pauseMenu.SetActive(true);
+    }
+
+    public void closePauseMenu()
+    {
+        changeMode(gameMode.MapMode);
+        pauseMenu.SetActive(false);
+    }
+
+    public void openTutorial()
+    {
+        SceneManager.LoadScene("TutorialScene", LoadSceneMode.Additive);
+    }
     
   
 }
