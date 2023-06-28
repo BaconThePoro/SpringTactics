@@ -27,6 +27,7 @@ public class MGameController : NetworkBehaviour
     private float delay = 0.6f;
     
     // p1 stuff
+    private int player1 = 0;
     private GameObject p1; 
     private GameObject[] p1Units;
     private Character[] p1Stats;
@@ -38,6 +39,7 @@ public class MGameController : NetworkBehaviour
     private int p1GearAmount = 0;
 
     // p2 stuff
+    private int player2 = 1; 
     private GameObject p2;
     private GameObject[] p2Units;
     private Character[] p2Stats;
@@ -345,10 +347,10 @@ public class MGameController : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            if (NetworkManager.Singleton.LocalClientId == 1 && (clickLock == 1 || clickLock == 3))
+            if (NetworkManager.Singleton.LocalClientId == (ulong)player1 && (clickLock == 1 || clickLock == 3))
                 return;
             
-            if (NetworkManager.Singleton.LocalClientId == 2 && (clickLock == 2 || clickLock == 3))
+            if (NetworkManager.Singleton.LocalClientId == (ulong)player2 && (clickLock == 2 || clickLock == 3))
                 return;
             
             // if over UI ignore
@@ -429,7 +431,7 @@ public class MGameController : NetworkBehaviour
             return;
         }
         
-        if ((int)serverRpcParams.Receive.SenderClientId == 1)
+        if ((int)serverRpcParams.Receive.SenderClientId == player1)
         { 
             if (p1TargetedStats.getCanAttack() == true && inAttackRange(mousePos, p1Targeted)) 
             {
@@ -438,7 +440,7 @@ public class MGameController : NetworkBehaviour
             }
 
         }
-        else if ((int)serverRpcParams.Receive.SenderClientId == 2)
+        else if ((int)serverRpcParams.Receive.SenderClientId == player2)
         {
             if (p2TargetedStats.getCanAttack() == true && inAttackRange(mousePos, p2Targeted))
             {
@@ -457,12 +459,12 @@ public class MGameController : NetworkBehaviour
         passClickLockClientRpc(clickLock);
 
         // can only fight once per turn, reduce movement to 0
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             p1TargetedStats.movLeft = 0;
             passMovStatClientRpc(p1Targeted.name, p1TargetedStats.movLeft, p1TargetedStats.baseMOV);
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             p2TargetedStats.movLeft = 0;
             passMovStatClientRpc(p2Targeted.name, p2TargetedStats.movLeft, p2TargetedStats.baseMOV);
@@ -768,6 +770,7 @@ public class MGameController : NetworkBehaviour
     {
         clickLock = clocklock;
     }
+    
     public void changeTurn(turnMode newTurn)
     {
         turnMode prevTurnMode = currTurnMode;
@@ -873,10 +876,10 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void clickedCharServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
     {
-        Debug.Log("Request from Player " + (serverRpcParams.Receive.SenderClientId));
+        Debug.Log("clickedCharServerRpc on " + NetworkManager.Singleton.LocalClientId);
 
         // if player 1
-        if ((int)serverRpcParams.Receive.SenderClientId == 1)
+        if ((int)serverRpcParams.Receive.SenderClientId == player1)
         {
             for (int i = 0; i < p1Units.Length; i++)
             {
@@ -909,7 +912,7 @@ public class MGameController : NetworkBehaviour
             contextMenu.SetActive(false);
         }
         // player 2
-        else
+        else if ((int)serverRpcParams.Receive.SenderClientId == player2)
         {
             for (int i = 0; i < p2Units.Length; i++)
             {
@@ -960,7 +963,7 @@ public class MGameController : NetworkBehaviour
         if (currTurnMode == turnMode.Player1Turn)
         {
             // make sure player 1 sent this request
-            if ((int)serverRpcParams.Receive.SenderClientId != 1)
+            if ((int)serverRpcParams.Receive.SenderClientId != player1)
             {
                 Debug.Log("Player 2 tried to end Player 1s turn");
             }
@@ -976,7 +979,7 @@ public class MGameController : NetworkBehaviour
         if (currTurnMode == turnMode.Player2Turn)
         {
             // make sure player 2 sent this request
-            if ((int)serverRpcParams.Receive.SenderClientId != 2)
+            if ((int)serverRpcParams.Receive.SenderClientId != player2)
             {
                 Debug.Log("Player 1 tried to end Player 2s turn");
             }
@@ -1000,7 +1003,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void deselectTargetServerRpc(ServerRpcParams serverRpcParams)
     {
-        if ((int)serverRpcParams.Receive.SenderClientId == 1)
+        if ((int)serverRpcParams.Receive.SenderClientId == player1)
         {
             if (p1Targeted == null)
                 return;
@@ -1019,7 +1022,7 @@ public class MGameController : NetworkBehaviour
             overlayMap.ClearAllTiles();
             p1DeselectClientRpc();
         }
-        else
+        else if ((int)serverRpcParams.Receive.SenderClientId == player2)
         {
             if (p2Targeted == null)
                 return;
@@ -1044,8 +1047,9 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     void targetServerRpc(String targetName, ServerRpcParams serverRpcParams)
     {
+        Debug.Log("targetServerRpc on " + NetworkManager.Singleton.LocalClientId);
         GameObject target = GameObject.Find(targetName);
-        if ((int)serverRpcParams.Receive.SenderClientId == 1)
+        if ((int)serverRpcParams.Receive.SenderClientId == player1)
         {
             moveActive = false;
             attackActive = false;
@@ -1058,7 +1062,7 @@ public class MGameController : NetworkBehaviour
             p1hideAreaClientRpc();  
             p1SelectClientRpc(p1Targeted.transform.name);
         }
-        else
+        else if ((int)serverRpcParams.Receive.SenderClientId == player2)
         {
             moveActive = false;
             attackActive = false;
@@ -1076,8 +1080,9 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     void p1SelectClientRpc(String name)
     {
+        Debug.Log("p1SelectClientRpc on " + NetworkManager.Singleton.LocalClientId);
         //if player 2 ignore 
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -1091,7 +1096,7 @@ public class MGameController : NetworkBehaviour
     void p1DeselectClientRpc()
     {
         //if player 2 ignore 
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -1115,7 +1120,7 @@ public class MGameController : NetworkBehaviour
     {
         
         //if player 1 ignore 
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -1130,7 +1135,7 @@ public class MGameController : NetworkBehaviour
     void p2DeselectClientRpc()
     {
         //if player 1 ignore 
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -1152,7 +1157,7 @@ public class MGameController : NetworkBehaviour
     public void P1openContextMenuClientRpc(Vector3 mousePos)
     {
         //Ignore for player 2. 
-        if (NetworkManager.Singleton.LocalClientId == 2 || NetworkManager.Singleton.LocalClientId == 0)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -1255,7 +1260,7 @@ public class MGameController : NetworkBehaviour
     public void P2openContextMenuClientRpc(Vector3 mousePos)
     {
         //Ignore for player 1 
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -1446,7 +1451,7 @@ public class MGameController : NetworkBehaviour
     public void highlightMove()
     {
         //For Player 1 movement 
-        if (NetworkManager.Singleton.LocalClientId == 1 && currTurnMode == turnMode.Player1Turn)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1 && currTurnMode == turnMode.Player1Turn)
         {
             if (p1Targeted == null)
                 return;
@@ -1473,7 +1478,7 @@ public class MGameController : NetworkBehaviour
         }
         
         //For Player 2 movement 
-        if (NetworkManager.Singleton.LocalClientId == 2 && currTurnMode == turnMode.Player2Turn)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2 && currTurnMode == turnMode.Player2Turn)
         {
             if (p2Targeted == null)
                 return;
@@ -1530,12 +1535,12 @@ public class MGameController : NetworkBehaviour
     {
         changeMode(gameMode.MenuMode);
 
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             p1UpgradeClientRpc();
             
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             p2UpgradeClientRpc();
         }
@@ -1545,12 +1550,12 @@ public class MGameController : NetworkBehaviour
     public void closeUpgradeMenuServerRpc(ServerRpcParams serverRpcParams)
     {
         changeMode(gameMode.MapMode);
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             p1closeUpgradeMenuClientRpc();
             
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             p2closeUpgradeMenuClientRpc();
         }
@@ -1564,7 +1569,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void p1closeUpgradeMenuClientRpc()
     {
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -1586,7 +1591,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void p2closeUpgradeMenuClientRpc()
     {
-        if (NetworkManager.Singleton.LocalClientId ==1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -1974,13 +1979,13 @@ public class MGameController : NetworkBehaviour
      [ServerRpc(RequireOwnership = false)]
      public void changedNameServerRpc(string s,ServerRpcParams serverRpcParams)
      {
-         if (serverRpcParams.Receive.SenderClientId == 1)
+         if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
          {
              p1TargetedStats.charName = s;
              changedNameClientRpc(s,p1Targeted.name);
              
          }
-         else if (serverRpcParams.Receive.SenderClientId == 2)
+         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
          {
              p2TargetedStats.charName = s;
              changedNameClientRpc(s,p2Targeted.name);
@@ -2005,11 +2010,11 @@ public class MGameController : NetworkBehaviour
 
      public void changedBody(Dropdown d)
      {
-         if (NetworkManager.Singleton.LocalClientId == 1)
+         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
          {
              changedBodyServerRpc(d.value, p1Targeted.name);
          }
-         else if (NetworkManager.Singleton.LocalClientId == 2)
+         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
          {
              changedBodyServerRpc(d.value, p2Targeted.name);
          }
@@ -2053,11 +2058,11 @@ public class MGameController : NetworkBehaviour
      
      public void changedWeapon(Dropdown d)
      {
-         if (NetworkManager.Singleton.LocalClientId == 1)
+         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
          {
              changedWeaponServerRpc(d.value, p1Targeted.name);
          }
-         else if (NetworkManager.Singleton.LocalClientId == 2)
+         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
          {
              changedWeaponServerRpc(d.value, p2Targeted.name);
          }
@@ -2067,7 +2072,7 @@ public class MGameController : NetworkBehaviour
     public void p1UpgradeClientRpc()
     {
         
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -2080,12 +2085,12 @@ public class MGameController : NetworkBehaviour
     public void hpButtonPressed()
     {
         hpButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
             
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2094,7 +2099,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void hpButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.HPCost && p1TargetedStats.baseHP < p1TargetedStats.getHPMAX())
             {
@@ -2106,7 +2111,7 @@ public class MGameController : NetworkBehaviour
                 passHpStatClientRpc(p1Targeted.name,p1TargetedStats.hpLeft,p1TargetedStats.baseHP);
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.HPCost && p2TargetedStats.baseHP < p2TargetedStats.getHPMAX())
             {
@@ -2123,12 +2128,12 @@ public class MGameController : NetworkBehaviour
     public void strButtonPressed()
     {
         strButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
             
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2138,7 +2143,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void strButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.STRCost && p1TargetedStats.baseSTR < p1TargetedStats.getSTRMAX())
             {
@@ -2149,7 +2154,7 @@ public class MGameController : NetworkBehaviour
                 passStrClientRpc(p1Targeted.name,p1TargetedStats.baseSTR);
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.STRCost && p2TargetedStats.baseSTR < p2TargetedStats.getSTRMAX())
             {
@@ -2165,12 +2170,12 @@ public class MGameController : NetworkBehaviour
     public void magButtonPressed()
     {
         magButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
             
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2179,7 +2184,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void magButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.MAGCost && p1TargetedStats.baseMAG < p1TargetedStats.getMAGMAX())
             {
@@ -2191,7 +2196,7 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.MAGCost && p2TargetedStats.baseMAG < p2TargetedStats.getMAGMAX())
             {
@@ -2200,7 +2205,6 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passMagClientRpc(p2Targeted.name,p2TargetedStats.baseMAG);
-
             }
         }
     }
@@ -2208,12 +2212,12 @@ public class MGameController : NetworkBehaviour
     public void defButtonPressed()
     {
         defButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
             
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2222,7 +2226,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void defButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.DEFCost && p1TargetedStats.baseDEF < p1TargetedStats.getDEFMAX())
             {
@@ -2234,7 +2238,7 @@ public class MGameController : NetworkBehaviour
 
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.DEFCost && p2TargetedStats.baseDEF < p2TargetedStats.getDEFMAX())
             {
@@ -2250,12 +2254,12 @@ public class MGameController : NetworkBehaviour
     public void resButtonPressed()
     {
         resButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
             
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2264,7 +2268,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void resButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.RESCost && p1TargetedStats.baseRES < p1TargetedStats.getRESMAX())
             {
@@ -2273,10 +2277,9 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passResClientRpc(p1Targeted.name,p1TargetedStats.baseRES);
-
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.RESCost && p2TargetedStats.baseRES < p2TargetedStats.getRESMAX())
             {
@@ -2285,7 +2288,6 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passResClientRpc(p2Targeted.name,p2TargetedStats.baseRES);
-
             }
         }
     }
@@ -2293,12 +2295,11 @@ public class MGameController : NetworkBehaviour
     public void spdButtonPressed()
     {
         spdButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
-            
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2307,7 +2308,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void spdButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.SPDCost && p1TargetedStats.SPDCost < p1TargetedStats.getSPDMAX())
             {
@@ -2316,10 +2317,9 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passSpdClientRpc(p1Targeted.name,p1TargetedStats.baseSPD);
-
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.SPDCost && p2TargetedStats.SPDCost < p2TargetedStats.getSPDMAX())
             {
@@ -2328,7 +2328,6 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passSpdClientRpc(p2Targeted.name,p2TargetedStats.baseSPD);
-
             }
         }
     }
@@ -2336,11 +2335,11 @@ public class MGameController : NetworkBehaviour
     public void movButtonPressed()
     {
         movButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             updateUpgradeMenu(p1Targeted);
         }
-        else if (NetworkManager.Singleton.LocalClientId == 1)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             updateUpgradeMenu(p2Targeted);
         }
@@ -2349,7 +2348,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void movButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             if (p1GearAmount >= p1TargetedStats.MOVCost && p1TargetedStats.baseMOV < p1TargetedStats.getMOVMAX())
             {
@@ -2361,7 +2360,7 @@ public class MGameController : NetworkBehaviour
                 passMovStatClientRpc(p1Targeted.name,p1TargetedStats.movLeft,p1TargetedStats.baseMOV);
             }
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             if (p2GearAmount >= p2TargetedStats.MOVCost && p2TargetedStats.baseMOV < p2TargetedStats.getMOVMAX())
             {
@@ -2371,7 +2370,6 @@ public class MGameController : NetworkBehaviour
                 updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();          
                 passMovStatClientRpc(p2Targeted.name,p2TargetedStats.movLeft,p2TargetedStats.baseMOV);
-
             }
         }
     }
@@ -2379,7 +2377,7 @@ public class MGameController : NetworkBehaviour
     public void p2UpgradeClientRpc()
     {
         
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -2399,7 +2397,7 @@ public class MGameController : NetworkBehaviour
     {
         
         attackActive = true;
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             if (p1TargetedStats.getAttackRange() == 1)
             {
@@ -2415,7 +2413,7 @@ public class MGameController : NetworkBehaviour
             }
             contextMenu.SetActive(false);
         }
-        else if(NetworkManager.Singleton.LocalClientId==2)
+        else if(NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             if (p2TargetedStats.getAttackRange() == 1)
             {
@@ -2443,7 +2441,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void validatePathServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
     {
-        if ((int)serverRpcParams.Receive.SenderClientId == 1 && currTurnMode == turnMode.Player1Turn)
+        if ((int)serverRpcParams.Receive.SenderClientId == player1 && currTurnMode == turnMode.Player1Turn)
         {
             List<PathNode> vectorPath = new List<PathNode>();
             vectorPath = pathfinding.FindPath((int)p1Targeted.transform.position.x, (int)p1Targeted.transform.position.y,
@@ -2468,7 +2466,7 @@ public class MGameController : NetworkBehaviour
             overlayMap.ClearAllTiles();
             moveActive = false;
         }
-        if ((int)serverRpcParams.Receive.SenderClientId == 2 && currTurnMode == turnMode.Player2Turn)
+        if ((int)serverRpcParams.Receive.SenderClientId == player2 && currTurnMode == turnMode.Player2Turn)
         {
             List<PathNode> vectorPath = new List<PathNode>();
             vectorPath = pathfinding.FindPath((int)p2Targeted.transform.position.x, (int)p2Targeted.transform.position.y,
@@ -2499,7 +2497,7 @@ public class MGameController : NetworkBehaviour
     
     public IEnumerator movePathServer(List<PathNode> vectorPath, ServerRpcParams serverRpcParams)
     {
-        if ((int)serverRpcParams.Receive.SenderClientId == 1 && currTurnMode == turnMode.Player1Turn)
+        if ((int)serverRpcParams.Receive.SenderClientId == player1 && currTurnMode == turnMode.Player1Turn)
         {
             moveActive = false;
             clickLock = 1; 
@@ -2529,7 +2527,7 @@ public class MGameController : NetworkBehaviour
             P1openContextMenuClientRpc(p1Targeted.transform.position);
         }
 
-        if ((int)serverRpcParams.Receive.SenderClientId == 2 && currTurnMode == turnMode.Player2Turn)
+        if ((int)serverRpcParams.Receive.SenderClientId == player2 && currTurnMode == turnMode.Player2Turn)
         {
             moveActive = false;
             clickLock = 2; 
@@ -2574,7 +2572,7 @@ public class MGameController : NetworkBehaviour
         if (!Player)
         {
             // ignore if player 2
-            if (NetworkManager.Singleton.LocalClientId == 2)
+            if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
             {
                 return;
             }
@@ -2582,7 +2580,7 @@ public class MGameController : NetworkBehaviour
         // player 2
         else
         {
-            if (NetworkManager.Singleton.LocalClientId == 1)
+            if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
             {
                 return;
             }
@@ -2615,6 +2613,7 @@ public class MGameController : NetworkBehaviour
 
         return false; 
     }
+    
     [ServerRpc(RequireOwnership = false)]
     public void resetAllMoveServerRpc()
     {
@@ -2624,7 +2623,6 @@ public class MGameController : NetworkBehaviour
             p2Stats[i].resetMove();
             passMovStatClientRpc(p1Stats[i].name,p1Stats[i].movLeft,p1Stats[i].baseMOV);
             passMovStatClientRpc(p2Stats[i].name,p2Stats[i].movLeft,p2Stats[i].baseMOV);
-
         }
     }
     
@@ -2637,9 +2635,9 @@ public class MGameController : NetworkBehaviour
             p2Stats[i].setAttack(true);
             passAtkStatClientRpc(p1Stats[i].name,p1Stats[i].getCanAttack());
             passAtkStatClientRpc(p2Stats[i].name,p2Stats[i].getCanAttack());
-
         }
     }
+    
     [ClientRpc]
     public void passMovStatClientRpc(string name, int movleft, int mov)
     {
@@ -2713,7 +2711,6 @@ public class MGameController : NetworkBehaviour
         targetStats.setAttack(canAttack);
         targetStats.updateStats();
         targetStats.updateCosts();
-
     }
     
     [ClientRpc]
@@ -2725,7 +2722,6 @@ public class MGameController : NetworkBehaviour
         targetStats.baseHP = hp;
         targetStats.updateStats();
         targetStats.updateCosts();
- 
     }
     
     [ClientRpc]
@@ -2734,6 +2730,7 @@ public class MGameController : NetworkBehaviour
         p1GearAmount = p1G;
         p2GearAmount = p2G;
     }
+    
     [ClientRpc]
     public void passAttackActiveClientRpc(bool cond)
     {
@@ -2939,8 +2936,6 @@ public class MGameController : NetworkBehaviour
             
             damageTaker.takeDamage(damageMinusDefense);
             takeDamageClientRpc(damageMinusDefense, damageTaker.name);
-
-          
         }
         // attacker has magic weapon
         else
@@ -2952,8 +2947,6 @@ public class MGameController : NetworkBehaviour
 
             damageTaker.takeDamage(damageMinusDefense);
             takeDamageClientRpc(damageMinusDefense, damageTaker.name);
-          
-
         }
 
         // all player characters dead
@@ -3044,11 +3037,11 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void updateGearNumPanelClientRpc()
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + p1GearAmount;
         }
-        else if (NetworkManager.Singleton.LocalClientId == 2)
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             gearNumPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "" + p2GearAmount;
         }
@@ -3112,7 +3105,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void inspectButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
-        if (serverRpcParams.Receive.SenderClientId == 1)
+        if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
         {
             charInfoPanel.gameObject.SetActive(true);
             P1updateCharInfo();
@@ -3120,7 +3113,7 @@ public class MGameController : NetworkBehaviour
             p1showAreaClientRpc(p1Targeted.name);
             contextMenu.SetActive(false);
         }
-        else if (serverRpcParams.Receive.SenderClientId == 2)
+        else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
         {
             charInfoPanel.gameObject.SetActive(true);
             P2updateCharInfo();
@@ -3133,7 +3126,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void p1hideAreaClientRpc()
     {
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -3147,7 +3140,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void p2hideAreaClientRpc()
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -3161,7 +3154,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void p1showAreaClientRpc(String unitString)
     {
-        if (NetworkManager.Singleton.LocalClientId == 2)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
             return;
         }
@@ -3225,7 +3218,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void p2showAreaClientRpc(String unitString)
     {
-        if (NetworkManager.Singleton.LocalClientId == 1)
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             return;
         }
@@ -3318,7 +3311,5 @@ public class MGameController : NetworkBehaviour
     {
         SceneManager.LoadScene("MenuScene", LoadSceneMode.Single);
     }
-    
-  
 }
 
