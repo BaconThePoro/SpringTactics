@@ -2005,7 +2005,14 @@ public class MGameController : NetworkBehaviour
 
      public void changedBody(Dropdown d)
      {
-         changedBodyServerRpc(d.value, new ServerRpcParams());
+         if (NetworkManager.Singleton.LocalClientId == 1)
+         {
+             changedBodyServerRpc(d.value, p1Targeted.name);
+         }
+         else if (NetworkManager.Singleton.LocalClientId == 2)
+         {
+             changedBodyServerRpc(d.value, p2Targeted.name);
+         }
      }
      
      [ClientRpc]
@@ -2017,20 +2024,13 @@ public class MGameController : NetworkBehaviour
      }
      
      [ServerRpc(RequireOwnership = false)]
-     public void changedBodyServerRpc(int val, ServerRpcParams serverRpcParams)
+     public void changedBodyServerRpc(int val, string name)
      {
-         if (serverRpcParams.Receive.SenderClientId == 1)
-         {
-             p1TargetedStats.changeBody((Character.bodyType)val);
-             updateUpgradeMenu(p1Targeted);
-             changedBodyClientRpc(val, p1Targeted.name);
-         }
-         else if (serverRpcParams.Receive.SenderClientId == 2)
-         {
-             p2TargetedStats.changeBody((Character.bodyType)val);
-             updateUpgradeMenu(p2Targeted);
-             changedBodyClientRpc(val, p2Targeted.name);
-         }
+         GameObject unit = GameObject.Find(name);
+         Character unitStats = unit.GetComponent<Character>();
+         unitStats.changeBody((Character.bodyType)val);
+         updateUpgradeMenu(unit);
+         changedBodyClientRpc(val, unit.name);
      }
 
      [ClientRpc]
@@ -2042,27 +2042,25 @@ public class MGameController : NetworkBehaviour
      }
 
      [ServerRpc(RequireOwnership = false)]
-     public void changedWeaponServerRpc(int val, ServerRpcParams serverRpcParams)
+     public void changedWeaponServerRpc(int val, string name)
      {
-         if (serverRpcParams.Receive.SenderClientId == 1)
-         {
-             p1hideAreaClientRpc();
-             p1TargetedStats.changeWeapon((Character.weaponType)val);
-             updateUpgradeMenu(p1Targeted);
-             changedWeaponClientRpc(val, p1Targeted.name);
-         }
-         else if(serverRpcParams.Receive.SenderClientId == 2)
-         {
-             p2hideAreaClientRpc();
-             p2TargetedStats.changeWeapon((Character.weaponType)val);
-             updateUpgradeMenu(p2Targeted);
-             changedWeaponClientRpc(val, p2Targeted.name);
-         }
+         GameObject unit = GameObject.Find(name);
+         Character unitStats = unit.GetComponent<Character>();
+         unitStats.changeWeapon((Character.weaponType)val);
+         updateUpgradeMenu(unit);
+         changedWeaponClientRpc(val, unit.name);
      }
      
      public void changedWeapon(Dropdown d)
      {
-        changedWeaponServerRpc(d.value, new ServerRpcParams());
+         if (NetworkManager.Singleton.LocalClientId == 1)
+         {
+             changedWeaponServerRpc(d.value, p1Targeted.name);
+         }
+         else if (NetworkManager.Singleton.LocalClientId == 2)
+         {
+             changedWeaponServerRpc(d.value, p2Targeted.name);
+         }
      }
 
     [ClientRpc]
