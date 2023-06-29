@@ -775,6 +775,8 @@ public class MGameController : NetworkBehaviour
     {
         turnMode prevTurnMode = currTurnMode;
         currTurnMode = newTurn;
+        
+        passTurnModeClientRpc(currTurnMode);
 
         // make sure to update turn text as well
         updateTurnText();
@@ -789,8 +791,6 @@ public class MGameController : NetworkBehaviour
         {
             Debug.Log("!!! Failed to change turnMode from " + prevTurnMode + " to " + newTurn);
         }
-        
-        passTurnModeClientRpc(currTurnMode);
     }
 
     public void changeMode(gameMode newMode)
@@ -2995,6 +2995,9 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     public void takeDamageClientRpc(int damagenumber, string name)
     {
+        if (NetworkManager.Singleton.LocalClientId == 0)
+            return;
+        
         GameObject target = GameObject.Find(name);
         Character targetStats = target.GetComponent<Character>();
         targetStats.takeDamage(damagenumber);
