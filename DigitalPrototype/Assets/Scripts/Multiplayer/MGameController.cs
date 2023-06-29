@@ -1074,7 +1074,7 @@ public class MGameController : NetworkBehaviour
             return;
         p2Targeted = target;
         p2TargetedStats = p2Targeted.GetComponent<Character>();
-        p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
+        //p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
         //gameController.updateUpgradeMenu(currTargeted);
         p2hideAreaClientRpc();
         p2SelectClientRpc(p2Targeted.transform.name);

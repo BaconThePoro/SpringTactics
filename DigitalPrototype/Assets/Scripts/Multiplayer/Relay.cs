@@ -40,8 +40,7 @@ public class Relay : MonoBehaviour
 
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
-            NetworkManager.Singleton.StartServer();
-            JoinRelay(joinCode);
+            NetworkManager.Singleton.StartHost();
             
             GameObject gC = GameObject.Find("GameController").gameObject;
             if (gC !=null)
