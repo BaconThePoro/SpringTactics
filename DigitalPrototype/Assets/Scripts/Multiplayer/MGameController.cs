@@ -3294,6 +3294,12 @@ public class MGameController : NetworkBehaviour
         joinCodeR.SetActive(false);
     }
 
+    public void copyJoinCodeButton()
+    {
+        Debug.Log("copied join code to clipboard");
+        GUIUtility.systemCopyBuffer = joinCodeTXT.text;
+    }
+
     public void openPauseMenu()
     {
         changeMode(gameMode.MenuMode);
