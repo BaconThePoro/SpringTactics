@@ -53,9 +53,10 @@ public class MGameController : NetworkBehaviour
     //Map Features
     public Vector3[] featuresStartPos;
     private GameObject[] featureUnits;
+    private mapFeatures[] featuresFeatures; 
     private GameObject mapFeatures;
-    public enum featureType{SupplyCache};
-    private featureType[] typeList;
+    public mapFeatures.featureType[] featureTypeList;
+    private int crateGearNum = 12;
 
 
     //context Menu buttons/interaction
@@ -200,7 +201,7 @@ public class MGameController : NetworkBehaviour
         upgradeButton = contextMenu.transform.GetChild(2).GetComponent<Button>();
         inspectButton = contextMenu.transform.GetChild(3).GetComponent<Button>();
         deselectButton = contextMenu.transform.GetChild(4).GetComponent<Button>();
-      
+
         //Char Info gets all information for stats
         LcharNameTXT = charInfoPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
         LmovLeftTXT = charInfoPanel.transform.GetChild(9).gameObject;
@@ -213,7 +214,7 @@ public class MGameController : NetworkBehaviour
         LmovNUM = charInfoPanel.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
         LmovLeftNUMObj = charInfoPanel.transform.GetChild(17).gameObject;
         LmovLeftNUM = LmovLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
-        
+
         //For Right Char Info Panel
         RcharNameTXT = charInfoPanelR.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
         RmovLeftTXT = charInfoPanelR.transform.GetChild(9).gameObject;
@@ -226,7 +227,7 @@ public class MGameController : NetworkBehaviour
         RmovNUM = charInfoPanelR.transform.GetChild(16).GetComponent<TMPro.TextMeshProUGUI>();
         RmovLeftNUMObj = charInfoPanelR.transform.GetChild(17).gameObject;
         ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
-        
+
         //upgrade menu stuff
         charName = upgradeMenu.transform.GetChild(1).transform.GetChild(3).GetComponent<TMPro.TMP_InputField>();
         charImage = upgradeMenu.transform.GetChild(1).transform.GetChild(6).GetComponent<Image>();
@@ -237,7 +238,7 @@ public class MGameController : NetworkBehaviour
         magNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(20).GetComponent<TMPro.TextMeshProUGUI>();
         spdNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(21).GetComponent<TMPro.TextMeshProUGUI>();
         defNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(22).GetComponent<TMPro.TextMeshProUGUI>();
-        resNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();     
+        resNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();
         movNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(24).GetComponent<TMPro.TextMeshProUGUI>();
         hpMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(25).GetComponent<TMPro.TextMeshProUGUI>();
         strMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(26).GetComponent<TMPro.TextMeshProUGUI>();
@@ -247,7 +248,7 @@ public class MGameController : NetworkBehaviour
         resMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(30).GetComponent<TMPro.TextMeshProUGUI>();
         movMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(31).GetComponent<TMPro.TextMeshProUGUI>();
         hpCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(34).GetComponent<TMPro.TextMeshProUGUI>();
-        strCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>(); 
+        strCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>();
         magCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(38).GetComponent<TMPro.TextMeshProUGUI>();
         defCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(40).GetComponent<TMPro.TextMeshProUGUI>();
         resCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(42).GetComponent<TMPro.TextMeshProUGUI>();
@@ -282,7 +283,7 @@ public class MGameController : NetworkBehaviour
         joinCodeTXT = joinCodePanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
         joinCodeL = joinCodeUI.transform.GetChild(2).gameObject;
         joinCodeR = joinCodeUI.transform.GetChild(1).gameObject;
-        
+
         // initialize p1
         p1 = transform.GetChild(0).gameObject;
         p1Units = new GameObject[p1.transform.childCount];
@@ -291,15 +292,10 @@ public class MGameController : NetworkBehaviour
         p2 = transform.GetChild(1).gameObject;
         p2Units = new GameObject[p2.transform.childCount];
         p2Stats = new Character[p2.transform.childCount];
-
         //Initialize map features
         mapFeatures = transform.GetChild(2).gameObject;
         featureUnits = new GameObject[mapFeatures.transform.childCount];
-
-        
-        
-
-        
+        featuresFeatures = new mapFeatures[mapFeatures.transform.childCount];
 
         int i = 0;
         foreach (Transform child in p1.transform)
@@ -334,13 +330,14 @@ public class MGameController : NetworkBehaviour
         foreach (Transform child in mapFeatures.transform)
         {
             featureUnits[i] = child.gameObject;
+            featuresFeatures[i] = featureUnits[i].GetComponent<mapFeatures>();
             featureUnits[i].transform.position = featuresStartPos[i];
-                   
+            featuresFeatures[i].changeFeature(featureTypeList[i]);
 
             i += 1;
-        }  
-        
-              
+        }
+
+
         moveAreas = new GameObject[moveAreaParent.transform.childCount];
         i = 0;
         foreach (Transform child in moveAreaParent.transform)
@@ -355,13 +352,14 @@ public class MGameController : NetworkBehaviour
         {
             attackAreas[i] = child.gameObject;
             i += 1;
-        }  
-        
-        giveGearNum(10,false);
-        giveGearNum(10,true);
+        }
+
+        giveGearNum(10, false);
+        giveGearNum(10, true);
         changeTurn(turnMode.Player1Turn);
         changeMode(gameMode.MapMode);
         updateTurnText();
+
 
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
     }
@@ -2093,11 +2091,13 @@ public class MGameController : NetworkBehaviour
      {
          if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
          {
-             changedWeaponServerRpc(d.value, p1Targeted.name);
+             if (p1Targeted != null)
+                changedWeaponServerRpc(d.value, p1Targeted.name);
          }
          else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
          {
-             changedWeaponServerRpc(d.value, p2Targeted.name);
+             if (p2Targeted != null)
+                changedWeaponServerRpc(d.value, p2Targeted.name);
          }
      }
 
@@ -2397,7 +2397,7 @@ public class MGameController : NetworkBehaviour
         {
             if (p2GearAmount >= p2TargetedStats.MOVCost && p2TargetedStats.baseMOV < p2TargetedStats.getMOVMAX())
             {
-                giveGearNum(-p2TargetedStats.MOVCost,false);
+                giveGearNum(-p2TargetedStats.MOVCost,true);
                 p2TargetedStats.baseMOV = p2TargetedStats.baseMOV + 1;
                 p2TargetedStats.movLeft = p2TargetedStats.movLeft + 1;
                 updateUpgradeMenu(p2Targeted);
@@ -2526,7 +2526,31 @@ public class MGameController : NetworkBehaviour
             moveActive = false;
         }
     }
-    
+
+    public mapFeatures checkOnCrate(Vector3 pos)
+    {
+        for (int i = 0; i < mapFeatures.transform.childCount; i++)
+        {
+            if (featuresFeatures[i].GetFeatureType() == global::mapFeatures.featureType.SupplyCache 
+                && pos == featureUnits[i].transform.position)
+            {
+                return featuresFeatures[i];
+            }
+        }
+
+        return null; 
+    }
+
+    [ClientRpc]
+    public void collectCrateClientRpc(string name)
+    {
+        GameObject obj = GameObject.Find(name);
+        if (obj != null)
+        {
+            mapFeatures feature = obj.GetComponent<mapFeatures>();
+            feature.getCollected();
+        }
+    }
     
     public IEnumerator movePathServer(List<PathNode> vectorPath, ServerRpcParams serverRpcParams)
     {
@@ -2552,6 +2576,15 @@ public class MGameController : NetworkBehaviour
                 yield return new WaitForSeconds(delay);
             }
 
+            mapFeatures maybeFeature = checkOnCrate(p1Targeted.transform.position);
+            // check if unit ended turn on supply cache
+            if (maybeFeature != null)
+            {
+                maybeFeature.getCollected();
+                collectCrateClientRpc(maybeFeature.name);
+                giveGearNum(crateGearNum, false);
+            }
+            
             changeMode(gameMode.MapMode);
             clickLock = 0;
             passClickLockClientRpc(0);
@@ -2579,6 +2612,15 @@ public class MGameController : NetworkBehaviour
                 //showArea(currTargeted);
                 P2updateCharInfo();
                 yield return new WaitForSeconds(delay);
+            }
+            
+            mapFeatures maybeFeature = checkOnCrate(p2Targeted.transform.position);
+            // check if unit ended turn on supply cache
+            if (maybeFeature != null)
+            {
+                maybeFeature.getCollected();
+                collectCrateClientRpc(maybeFeature.name);
+                giveGearNum(crateGearNum, true);
             }
 
             changeMode(gameMode.MapMode);
@@ -2650,7 +2692,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void resetAllMoveServerRpc()
     {
-        for (int i = 0; i < transform.childCount; i++)
+        for (int i = 0; i < 2; i++)
         {
             p1Stats[i].resetMove();
             p2Stats[i].resetMove();
@@ -2662,7 +2704,7 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void resetAllAttackServerRpc()
     {
-        for (int i = 0; i < transform.childCount; i++)
+        for (int i = 0; i < 2; i++)
         {
             p1Stats[i].setAttack(true);
             p2Stats[i].setAttack(true);
@@ -3352,6 +3394,11 @@ public class MGameController : NetworkBehaviour
     public void returnMainMenu()
     {
         SceneManager.LoadScene("MenuScene", LoadSceneMode.Single);
+    }
+
+    public void rematch()
+    {
+        SceneManager.LoadScene("MultiplayerScene", LoadSceneMode.Single);
     }
 }
 
