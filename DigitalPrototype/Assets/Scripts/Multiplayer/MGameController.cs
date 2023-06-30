@@ -49,7 +49,15 @@ public class MGameController : NetworkBehaviour
     private GameObject p2Targeted = null;
     private Character p2TargetedStats = null;
     private int p2GearAmount = 0;
-    
+
+    //Map Features
+    public Vector3[] featuresStartPos;
+    private GameObject[] featureUnits;
+    private GameObject mapFeatures;
+    public enum featureType{SupplyCache};
+    private featureType[] typeList;
+
+
     //context Menu buttons/interaction
     public GameObject contextMenu = null;
     //Above must be attached in editor
@@ -284,6 +292,15 @@ public class MGameController : NetworkBehaviour
         p2Units = new GameObject[p2.transform.childCount];
         p2Stats = new Character[p2.transform.childCount];
 
+        //Initialize map features
+        mapFeatures = transform.GetChild(2).gameObject;
+        featureUnits = new GameObject[mapFeatures.transform.childCount];
+
+        
+        
+
+        
+
         int i = 0;
         foreach (Transform child in p1.transform)
         {
@@ -311,7 +328,19 @@ public class MGameController : NetworkBehaviour
 
             i += 1;
         }
+
+        //For map features
+        i = 0;
+        foreach (Transform child in mapFeatures.transform)
+        {
+            featureUnits[i] = child.gameObject;
+            featureUnits[i].transform.position = featuresStartPos[i];
+                   
+
+            i += 1;
+        }  
         
+              
         moveAreas = new GameObject[moveAreaParent.transform.childCount];
         i = 0;
         foreach (Transform child in moveAreaParent.transform)
