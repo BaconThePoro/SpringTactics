@@ -648,7 +648,7 @@ public class GameController : MonoBehaviour
 
     public void updateBattleStats(Character leftStats, Character rightStats)
     {
-        LcharNameTXT.text = "Name: " + leftStats.charName;
+        LcharNameTXT.text = "Name: " + leftStats.getCharName();
         LhpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
         LstrNUM.text = "" + leftStats.STR;
         LmagNUM.text = "" + leftStats.MAG;
@@ -659,7 +659,7 @@ public class GameController : MonoBehaviour
         LmovLeftTXT.SetActive(false);
         LmovLeftNUMObj.SetActive(false);
 
-        RcharNameTXT.text = "Name: " + rightStats.charName;
+        RcharNameTXT.text = "Name: " + rightStats.getCharName();
         RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
         RstrNUM.text = "" + rightStats.STR;
         RmagNUM.text = "" + rightStats.MAG;

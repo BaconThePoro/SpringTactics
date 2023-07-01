@@ -5,7 +5,7 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
 
-    public string charName = "blankName";
+    private string charName = "blankName";
     // base stats are stats before being affected by weapon stats
     public int baseHP = 10;
     public int baseSTR = 1;
@@ -60,6 +60,17 @@ public class Character : MonoBehaviour
     private GameObject weaponSprites = null;
     private GameObject bodySprites = null;
 
+    public string getCharName()
+    {
+        return charName;
+    }
+
+    public void setCharName(string s)
+    {
+        if (s != "")
+            charName = s;
+    }
+    
     public bool getIsDead()
     {
         return isDead;

@@ -1397,7 +1397,7 @@ public class MGameController : NetworkBehaviour
          // if an enemy and not yet revealed
          if (p1Targeted.transform.IsChildOf(p2.transform) && p1TargetedStats.statReveal == false)
          {
-             LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
+             LcharNameTXT.text = "Name: " + p1TargetedStats.getCharName();
              LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
              LstrNUM.text = "??";
              LmagNUM.text = "??";
@@ -1410,7 +1410,7 @@ public class MGameController : NetworkBehaviour
          }
          else
          {
-             LcharNameTXT.text = "Name: " + p1TargetedStats.charName;
+             LcharNameTXT.text = "Name: " + p1TargetedStats.getCharName();
              LhpNUM.text = "" + p1TargetedStats.hpLeft + " / " + p1TargetedStats.HP;
              LstrNUM.text = "" + p1TargetedStats.STR;
              LmagNUM.text = "" + p1TargetedStats.MAG;
@@ -1442,7 +1442,7 @@ public class MGameController : NetworkBehaviour
         // if an enemy and not yet revealed
         if (p2Targeted.transform.IsChildOf(p1.transform) && p2TargetedStats.statReveal == false)
         {
-            LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
+            LcharNameTXT.text = "Name: " + p2TargetedStats.getCharName();
             LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
             LstrNUM.text = "??";
             LmagNUM.text = "??";
@@ -1455,7 +1455,7 @@ public class MGameController : NetworkBehaviour
         }
         else
         {
-            LcharNameTXT.text = "Name: " + p2TargetedStats.charName;
+            LcharNameTXT.text = "Name: " + p2TargetedStats.getCharName();
             LhpNUM.text = "" + p2TargetedStats.hpLeft + " / " + p2TargetedStats.HP;
             LstrNUM.text = "" + p2TargetedStats.STR;
             LmagNUM.text = "" + p2TargetedStats.MAG;
@@ -1644,7 +1644,7 @@ public class MGameController : NetworkBehaviour
      public void updateUpgradeMenu(GameObject character)
     {
         Character charStats = character.GetComponent<Character>();
-        charName.text = charStats.charName;
+        charName.text = charStats.getCharName();
         charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
         charImage.transform.localScale = character.transform.localScale;
 
@@ -2008,17 +2008,17 @@ public class MGameController : NetworkBehaviour
     }
 
      [ServerRpc(RequireOwnership = false)]
-     public void changedNameServerRpc(string s,ServerRpcParams serverRpcParams)
+     public void changedNameServerRpc(string s, ServerRpcParams serverRpcParams)
      {
          if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
          {
-             p1TargetedStats.charName = s;
+             p1TargetedStats.setCharName(s);
              changedNameClientRpc(s,p1Targeted.name);
              
          }
          else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
          {
-             p2TargetedStats.charName = s;
+             p2TargetedStats.setCharName(s);
              changedNameClientRpc(s,p2Targeted.name);
          }
      }
@@ -2028,15 +2028,12 @@ public class MGameController : NetworkBehaviour
      {
          GameObject target = GameObject.Find(name);
          Character targetStats = target.GetComponent<Character>();
-         targetStats.charName = s;
+         targetStats.setCharName(s);
      }
      
-     public void changedName(string s)
+     public void changedName()
      {
-         if (s == "")
-             return;
-         
-         changedNameServerRpc(s,new ServerRpcParams());
+         changedNameServerRpc(charName.text,new ServerRpcParams());
      }
 
      public void changedBody(Dropdown d)
@@ -2862,7 +2859,7 @@ public class MGameController : NetworkBehaviour
         
         Debug.Log("lName: " + lChar.name + ", rName: " + rChar.name);
         
-        LcharNameTXT.text = "Name: " + leftStats.charName;
+        LcharNameTXT.text = "Name: " + leftStats.getCharName();
         LhpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
         LstrNUM.text = "" + leftStats.STR;
         LmagNUM.text = "" + leftStats.MAG;
@@ -2873,7 +2870,7 @@ public class MGameController : NetworkBehaviour
         LmovLeftTXT.SetActive(false);
         LmovLeftNUMObj.SetActive(false);
 
-        RcharNameTXT.text = "Name: " + rightStats.charName;
+        RcharNameTXT.text = "Name: " + rightStats.getCharName();
         RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
         RstrNUM.text = "" + rightStats.STR;
         RmagNUM.text = "" + rightStats.MAG;
@@ -2894,7 +2891,7 @@ public class MGameController : NetworkBehaviour
         Character leftStats = GameObject.Find(lName).GetComponent<Character>();
         Character rightStats = GameObject.Find(rName).GetComponent<Character>();
         
-        LcharNameTXT.text = "Name: " + leftStats.charName;
+        LcharNameTXT.text = "Name: " + leftStats.getCharName();
         LhpNUM.text = "" + leftStats.hpLeft + " / " + leftStats.HP;
         LstrNUM.text = "" + leftStats.STR;
         LmagNUM.text = "" + leftStats.MAG;
@@ -2905,7 +2902,7 @@ public class MGameController : NetworkBehaviour
         LmovLeftTXT.SetActive(false);
         LmovLeftNUMObj.SetActive(false);
 
-        RcharNameTXT.text = "Name: " + rightStats.charName;
+        RcharNameTXT.text = "Name: " + rightStats.getCharName();
         RhpNUM.text = "" + rightStats.hpLeft + " / " + rightStats.HP;
         RstrNUM.text = "" + rightStats.STR;
         RmagNUM.text = "" + rightStats.MAG;

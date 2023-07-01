@@ -661,7 +661,7 @@ public class PlayerController : MonoBehaviour
 
     public void updateCharInfo()
     {
-        charNameTXT.text = "Name: " + currTargetedStats.charName;
+        charNameTXT.text = "Name: " + currTargetedStats.getCharName();
         hpNUM.text = "" + currTargetedStats.hpLeft + " / " + currTargetedStats.HP;
         strNUM.text = "" + currTargetedStats.STR;
         magNUM.text = "" + currTargetedStats.MAG;
@@ -722,7 +722,7 @@ public class PlayerController : MonoBehaviour
 
     public void changedName(string s)
     {
-        currTargetedStats.charName = s;
+        currTargetedStats.setCharName(s);
         currTargeted.name = s;
     }
 

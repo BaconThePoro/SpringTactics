@@ -11658,20 +11658,11 @@ MonoBehaviour:
       m_Calls: []
   m_OnDeselect:
     m_PersistentCalls:
-      m_Calls: []
-  m_OnTextSelection:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnEndTextSelection:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnValueChanged:
-    m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1371044851}
         m_TargetAssemblyTypeName: MGameController, Assembly-CSharp
         m_MethodName: changedName
-        m_Mode: 5
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -11680,6 +11671,15 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  m_OnTextSelection:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnEndTextSelection:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -52022,7 +52022,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8dda8c7ae55830d408f7a325e0ac8dad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  charName: 
   baseHP: 10
   baseSTR: 1
   baseMAG: 1
@@ -64311,7 +64310,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8dda8c7ae55830d408f7a325e0ac8dad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  charName: 
   baseHP: 10
   baseSTR: 6
   baseMAG: 0
