@@ -1486,6 +1486,7 @@ public class MGameController : NetworkBehaviour
         {
             if (p1Targeted == null)
                 return;
+            
             moveActive = true;
             attackActive = false;
             List<PathNode> vectorPath = new List<PathNode>();
@@ -1513,6 +1514,7 @@ public class MGameController : NetworkBehaviour
         {
             if (p2Targeted == null)
                 return;
+            
             moveActive = true;
             attackActive = false;
             List<PathNode> vectorPath = new List<PathNode>();
@@ -2040,11 +2042,13 @@ public class MGameController : NetworkBehaviour
      {
          if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
          {
-             changedBodyServerRpc(d.value, p1Targeted.name);
+             if (p1Targeted != null)
+                changedBodyServerRpc(d.value, p1Targeted.name);
          }
          else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
          {
-             changedBodyServerRpc(d.value, p2Targeted.name);
+             if (p2Targeted != null)
+                changedBodyServerRpc(d.value, p2Targeted.name);
          }
      }
      
