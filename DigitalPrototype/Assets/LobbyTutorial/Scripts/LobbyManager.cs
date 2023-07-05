@@ -23,7 +23,7 @@ public class LobbyManager : MonoBehaviour {
     public event EventHandler<LobbyEventArgs> OnJoinedLobby;
     public event EventHandler<LobbyEventArgs> OnJoinedLobbyUpdate;
     public event EventHandler<LobbyEventArgs> OnKickedFromLobby;
-    public event EventHandler<LobbyEventArgs> OnLobbyGameModeChanged;
+    
     public class LobbyEventArgs : EventArgs {
         public Lobby lobby;
     }
@@ -36,7 +36,10 @@ public class LobbyManager : MonoBehaviour {
 
     public enum Map {
         map1,
-        map2
+        map2,
+        map3,
+        map4,
+        map5
     }
 
 
@@ -150,26 +153,7 @@ public class LobbyManager : MonoBehaviour {
         });
     }
 
-    public void ChangeMap() {
-        if (IsLobbyHost()) {
-            Map map =
-                Enum.Parse<Map>(joinedLobby.Data[KEY_WHICH_MAP].Value);
-
-            switch (map) {
-                default:
-                case Map.map1:
-                    map = Map.map2;
-                    break;
-                case Map.map2:
-                    map = Map.map1;
-                    break;
-            }
-
-            UpdateLobbyGameMode(map);
-        }
-    }
-
-    public async void CreateLobby(string lobbyName, bool isPrivate, Map map) {
+    public async void CreateLobby(string lobbyName, bool isPrivate, Map map, int unitNumber, int startingSprings) {
         Player player = GetPlayer();
 
         CreateLobbyOptions options = new CreateLobbyOptions {
@@ -293,32 +277,18 @@ public class LobbyManager : MonoBehaviour {
         }
     }
 
-    public async void KickPlayer(string playerId) {
-        if (IsLobbyHost()) {
-            try {
+    public async void KickPlayer(string playerId)
+    {
+        if (IsLobbyHost())
+        {
+            try
+            {
                 await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
-            } catch (LobbyServiceException e) {
+            }
+            catch (LobbyServiceException e)
+            {
                 Debug.Log(e);
             }
         }
     }
-
-    public async void UpdateLobbyGameMode(Map map) {
-        try {
-            Debug.Log("UpdateLobbyGameMode " + map);
-            
-            Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions {
-                Data = new Dictionary<string, DataObject> {
-                    { KEY_WHICH_MAP, new DataObject(DataObject.VisibilityOptions.Public, map.ToString()) }
-                }
-            });
-
-            joinedLobby = lobby;
-
-            OnLobbyGameModeChanged?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
-        } catch (LobbyServiceException e) {
-            Debug.Log(e);
-        }
-    }
-
 }

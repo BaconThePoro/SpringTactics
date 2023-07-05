@@ -13,65 +13,160 @@ public class LobbyCreateUI : MonoBehaviour {
     [SerializeField] private Button createButton;
     [SerializeField] private Button lobbyNameButton;
     [SerializeField] private Button publicPrivateButton;
-    [SerializeField] private Button gameModeButton;
+    [SerializeField] private TMP_Dropdown mapDropdown;
     [SerializeField] private TextMeshProUGUI lobbyNameText;
     [SerializeField] private TextMeshProUGUI publicPrivateText;
-    [SerializeField] private TextMeshProUGUI maxPlayersText;
-    [SerializeField] private TextMeshProUGUI gameModeText;
-
-
-    private string lobbyName;
+    [SerializeField] private TMP_Dropdown unitNumDropdown;
+    [SerializeField] private Slider springsSlider;
+    [SerializeField] private TextMeshProUGUI springsEcho;
+    
+    private string lobbyName = "newLobby";
     private bool isPrivate;
     private LobbyManager.Map map;
+    private int unitNumber = 2;
+    private int startingSprings = 20;
 
-    private void Awake() {
+    private void Awake()
+    {
         Instance = this;
 
-        createButton.onClick.AddListener(() => {
+        createButton.onClick.AddListener(() =>
+        {
             LobbyManager.Instance.CreateLobby(
                 lobbyName,
                 isPrivate,
-                map
+                map,
+                unitNumber,
+                startingSprings
             );
             Hide();
         });
 
-        lobbyNameButton.onClick.AddListener(() => {
-            UI_InputWindow.Show_Static("Lobby Name", lobbyName, "abcdefghijklmnopqrstuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ .,-", 20,
-            () => {
-                // Cancel
-            },
-            (string lobbyName) => {
-                this.lobbyName = lobbyName;
-                UpdateText();
-            });
+        lobbyNameButton.onClick.AddListener(() =>
+        {
+            UI_InputWindow.Show_Static("Lobby Name", lobbyName,
+                "abcdefghijklmnopqrstuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ .,-", 20,
+                () =>
+                {
+                    // Cancel
+                },
+                (string lobbyName) =>
+                {
+                    this.lobbyName = lobbyName;
+                    UpdateText();
+                });
         });
 
-        publicPrivateButton.onClick.AddListener(() => {
+        publicPrivateButton.onClick.AddListener(() =>
+        {
             isPrivate = !isPrivate;
             UpdateText();
         });
 
-        gameModeButton.onClick.AddListener(() => {
-            switch (map) {
-                default:
-                case LobbyManager.Map.map1:
-                    map = LobbyManager.Map.map2;
-                    break;
-                case LobbyManager.Map.map2:
-                    map = LobbyManager.Map.map1;
-                    break;
-            }
-            UpdateText();
+
+        mapDropdown.onValueChanged.AddListener(delegate
+        {
+            mapDropdownValueChanged(mapDropdown);
+        });
+        
+        unitNumDropdown.onValueChanged.AddListener(delegate
+        {
+            unitDropdownValueChanged(unitNumDropdown);
+        });
+        
+        springsSlider.onValueChanged.AddListener(delegate
+        {
+            sliderValueChanged(springsSlider);
         });
 
+        unitNumDropdown.value = (unitNumber - 1);
+        springsSlider.value = startingSprings;
+        UpdateText();
         Hide();
+    }
+
+    private void sliderValueChanged(Slider change)
+    {
+        startingSprings = (int)change.value;
+        UpdateText();
+    }
+    
+    private void unitDropdownValueChanged(TMP_Dropdown change)
+    {
+        if (change.value == 0)
+        {
+            unitNumber = 1;
+        }
+        else if (change.value == 1)
+        {
+            unitNumber = 2;
+        }
+        else if (change.value == 2)
+        {
+            unitNumber = 3;
+        }
+        else if (change.value == 3)
+        {
+            unitNumber = 4;
+        }
+        else if (change.value == 4)
+        {
+            unitNumber = 5;
+        }
+        else if (change.value == 5)
+        {
+            unitNumber = 6;
+        }
+        else if (change.value == 6)
+        {
+            unitNumber = 7;
+        }
+        else if (change.value == 7)
+        {
+            unitNumber = 8;
+        }
+        else if (change.value == 8)
+        {
+            unitNumber = 9;
+        }
+        else if (change.value == 9)
+        {
+            unitNumber = 10;
+        }
+        
+        UpdateText();
+    }
+    
+    private void mapDropdownValueChanged(TMP_Dropdown change)
+    {
+        if (change.value == 0)
+        {
+            map = LobbyManager.Map.map1;
+        }
+        else if (change.value == 1)
+        {
+            map = LobbyManager.Map.map2;
+        }
+        else if (change.value == 2)
+        {
+            map = LobbyManager.Map.map3;
+        }
+        else if (change.value == 3)
+        {
+            map = LobbyManager.Map.map4;
+        }
+        else if (change.value == 4)
+        {
+            map = LobbyManager.Map.map5;
+        }
+        
+        UpdateText();
     }
 
     private void UpdateText() {
         lobbyNameText.text = lobbyName;
         publicPrivateText.text = isPrivate ? "Private" : "Public";
-        gameModeText.text = map.ToString();
+        springsEcho.text = "" + startingSprings; 
     }
 
     private void Hide() {
