@@ -23,6 +23,7 @@ public class MGameController : NetworkBehaviour
     private gameMode currGameMode;
 
     private TMPro.TMP_Text turnModeTXT = null;
+    private GameObject gridParent = null;
     private Grid currGrid = null;
     private float delay = 0.6f;
     
@@ -105,7 +106,7 @@ public class MGameController : NetworkBehaviour
     private GameObject[] moveAreas;
     private GameObject[] attackAreas;
     private MPathfinding pathfinding = null;
-    public Tilemap collisionMap = null;
+    private Tilemap collisionMap = null;
     private Tilemap overlayMap = null;
     public Tile moveTile = null;
     private int clickLock = 0; // 0 = no blocking, 1 = block player 1, 2 = block player 2, 3 = block both
@@ -192,8 +193,9 @@ public class MGameController : NetworkBehaviour
     public GameObject weaponSprites = null; 
     public GameObject upgradeMenu = null;
 
-    // counts how many connected
-    private int clientsConnected = 0;
+    // Lobby/Multiplayer stuff
+    private LobbyData lobbyData;
+    private int clientsConnected = 0; // counts how many connected
     
     void Start()
     {
@@ -270,12 +272,15 @@ public class MGameController : NetworkBehaviour
         weaponRange = weaponStatsPanel.transform.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>();
 
         //Finding Parents for movement area display
-        overlayMap = GameObject.Find("overlayMap").GetComponent<Tilemap>();
+        gridParent = GameObject.Find("Grids").gameObject;
+        currGrid = GameObject.Find("Grid - Map1").gameObject.GetComponent<Grid>();
+        overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
+        collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
         pathfinding = new MPathfinding(17, 11, collisionMap);
         moveAreaParent = GameObject.Find("moveAreas").gameObject;
         attackAreaParent = GameObject.Find("attackAreas").gameObject;
         turnModeTXT = GameObject.Find("currentTurnTXT").GetComponent<TMPro.TextMeshProUGUI>();
-        currGrid = GameObject.Find("Grid").gameObject.GetComponent<Grid>();
+        
 
         // initializing UI stuff
         mainCamera = mainCameraObj.GetComponent<Camera>();
@@ -360,24 +365,149 @@ public class MGameController : NetworkBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
     }
 
+    public void turnOffGrids()
+    {
+        for (int i = 0; i < gridParent.transform.childCount; i++)
+        {
+            gridParent.transform.GetChild(i).gameObject.SetActive(false);
+        }
+    }
+
     [ServerRpc]
     public void InitializeGameServerRpc()
     {
+        //if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+           // return;
+        
         if (clientsConnected != 2)
             return;
+
+        // grab lobbyData
+        lobbyData = GameObject.Find("LobbyData").GetComponent<LobbyData>();
         
-        giveGearNum(10, false); ;
-        giveGearNum(10, true);
+        // pick map
+        currGrid = gridParent.transform.GetChild((int)lobbyData.getMap()).GetComponent<Grid>();
+        overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
+        collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
+        pathfinding = new MPathfinding(17, 11, collisionMap);
+        turnOffGrids();
+        currGrid.gameObject.SetActive(true);
+        
+        // assign lobby spring amount
+        giveGearNum(lobbyData.getSprings(), false); ;
+        giveGearNum(lobbyData.getSprings(), true);
+        
+        // create lobby character number
+        for (int j = 0; j < (10 - lobbyData.getUnits()); j++)
+        {
+            p1Units[9 - j].transform.parent = null; 
+            p2Units[9 - j].transform.parent = null; 
+            Destroy(p1Units[9 - j]);
+            Destroy(p2Units[9 - j]);
+        }
+
+        // reinitialize p1
+        p1Units = new GameObject[p1.transform.childCount];
+        p1Stats = new Character[p1.transform.childCount];
+        int i = 0;
+        foreach (Transform child in p1.transform)
+        {
+            p1Units[i] = child.gameObject;
+            p1Stats[i] = p1Units[i].GetComponent<Character>();
+            p1Units[i].transform.position = p1StartPos[i];
+            p1Stats[i].changeBody(p1bodysList[i]);
+            p1Stats[i].changeWeapon(p1weaponsList[i]);
+            p1Stats[i].playerNum = 1;
+            p1Stats[i].setBodyVisuals();
+
+            i += 1;
+        }
+
+        // reinitialize p2
+        p2Units = new GameObject[p2.transform.childCount];
+        p2Stats = new Character[p2.transform.childCount];
+        i = 0;
+        foreach (Transform child in p2.transform)
+        {
+            p2Units[i] = child.gameObject;
+            p2Stats[i] = p2Units[i].GetComponent<Character>();
+            p2Units[i].transform.position = p2StartPos[i];
+            p2Stats[i].changeBody(p2bodysList[i]);
+            p2Stats[i].changeWeapon(p2weaponsList[i]);
+            p2Stats[i].playerNum = 2;
+            p2Stats[i].setBodyVisuals();
+
+            i += 1;
+        }
+        InitializeGameClientRpc(lobbyData.getUnits(), (int)lobbyData.getMap());
         
         changeTurn(turnMode.Player1Turn);
         passTurnModeClientRpc(currTurnMode);
         
         changeMode(gameMode.MapMode);
-        
+
         updateTurnText();
         
         clickLock = 0;
         passClickLockClientRpc(clickLock);
+    }
+
+    [ClientRpc]
+    private void InitializeGameClientRpc(int unitNum, int mapNum)
+    {
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+            return;
+        
+        // pick map
+        currGrid = gridParent.transform.GetChild(mapNum).GetComponent<Grid>();
+        overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
+        collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
+        pathfinding = new MPathfinding(17, 11, collisionMap);
+        turnOffGrids();
+        currGrid.gameObject.SetActive(true);
+        
+        // create lobby character number
+        for (int j = 0; j < (10 - unitNum); j++)
+        {
+            p1Units[9 - j].transform.parent = null; 
+            p2Units[9 - j].transform.parent = null; 
+            Destroy(p1Units[9 - j]);
+            Destroy(p2Units[9 - j]);
+        }
+
+        // reinitialize p1
+        p1Units = new GameObject[p1.transform.childCount];
+        p1Stats = new Character[p1.transform.childCount];
+        int i = 0;
+        foreach (Transform child in p1.transform)
+        {
+            p1Units[i] = child.gameObject;
+            p1Stats[i] = p1Units[i].GetComponent<Character>();
+            p1Units[i].transform.position = p1StartPos[i];
+            p1Stats[i].changeBody(p1bodysList[i]);
+            p1Stats[i].changeWeapon(p1weaponsList[i]);
+            p1Stats[i].playerNum = 1;
+            p1Stats[i].setBodyVisuals();
+
+            i += 1;
+        }
+
+        // reinitialize p2
+        p2Units = new GameObject[p2.transform.childCount];
+        p2Stats = new Character[p2.transform.childCount];
+        i = 0;
+        foreach (Transform child in p2.transform)
+        {
+            p2Units[i] = child.gameObject;
+            p2Stats[i] = p2Units[i].GetComponent<Character>();
+            p2Units[i].transform.position = p2StartPos[i];
+            p2Stats[i].changeBody(p2bodysList[i]);
+            p2Stats[i].changeWeapon(p2weaponsList[i]);
+            p2Stats[i].playerNum = 2;
+            p2Stats[i].setBodyVisuals();
+
+            i += 1;
+        }
     }
     
     private void OnClientConnectedCallback(ulong clientId)
@@ -514,7 +644,7 @@ public class MGameController : NetworkBehaviour
         }
         
         changeMode(gameMode.BattleMode);
-        
+
         // figure out which way to face (ally on left or right)
         direction battleDirection = facingWhere(ally.transform.position, enemy.transform.position);
 
@@ -702,8 +832,8 @@ public class MGameController : NetworkBehaviour
         activateAllChildren();
         Mapmode.SetActive(true);
         Battlemode.SetActive(false);
-        changeMode(gameMode.MapMode); 
-        
+        changeMode(gameMode.MapMode);
+
         leaveBattlemodClientRpc(leftChar.name, rightChar.name, leftChar.transform.position, rightChar.transform.position, 
             mainCamera.transform.position, mainCamera.orthographicSize, savedQuaLeft, savedQuaRight);
         
@@ -849,6 +979,8 @@ public class MGameController : NetworkBehaviour
         {
             Debug.Log("!!! Failed to change gameMode from " + prevGameMode + " to " + newMode);
         }
+        
+        passGameModeClientRpc(currGameMode);
     }
 
     public void updateTurnText()
@@ -986,7 +1118,7 @@ public class MGameController : NetworkBehaviour
 
             // else, clicked nothing
             deselectTargetServerRpc(serverRpcParams);
-            contextMenu.SetActive(false);
+            //contextMenu.SetActive(false);
         }
     }
 
@@ -1054,8 +1186,6 @@ public class MGameController : NetworkBehaviour
             p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
             moveActive = false;
             attackActive = false;
-            if (p1Targeted == null)
-                return;      
             p1Targeted = null;
             p1TargetedStats = null;
             charInfoPanel.gameObject.SetActive(false);
@@ -1070,18 +1200,16 @@ public class MGameController : NetworkBehaviour
             if (p2Targeted == null)
                 return;
 
-            p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
+            //p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
             moveActive = false;
             attackActive = false;
-            if (p2Targeted == null)
-                return;
             p2Targeted = null;
             p2TargetedStats = null;
-            charInfoPanel.gameObject.SetActive(false);
-            moveAreas[0].gameObject.SetActive(false);
-            moveAreas[1].gameObject.SetActive(false);
-            contextMenu.SetActive(false);
-            overlayMap.ClearAllTiles();
+            //charInfoPanel.gameObject.SetActive(false); // dont do on server
+            //moveAreas[0].gameObject.SetActive(false);
+            //moveAreas[1].gameObject.SetActive(false);
+            //contextMenu.SetActive(false); // dont do on server
+            //overlayMap.ClearAllTiles();
             p2DeselectClientRpc();
         }
     }
@@ -1099,11 +1227,9 @@ public class MGameController : NetworkBehaviour
         p1Targeted = target;
         p1TargetedStats = p1Targeted.GetComponent<Character>();
         p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
-        //gameController.updateUpgradeMenu(currTargeted);
+        //updateUpgradeMenuServerRpc(p1Targeted.name);
         p1hideAreaClientRpc();  
         p1SelectClientRpc(p1Targeted.transform.name);
-        
-        
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -1118,7 +1244,7 @@ public class MGameController : NetworkBehaviour
         p2Targeted = target;
         p2TargetedStats = p2Targeted.GetComponent<Character>();
         //p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
-        //gameController.updateUpgradeMenu(currTargeted);
+        //updateUpgradeMenuServerRpc(p2Targeted.name);
         p2hideAreaClientRpc();
         p2SelectClientRpc(p2Targeted.transform.name);
     }
@@ -1659,8 +1785,510 @@ public class MGameController : NetworkBehaviour
         }
     }
     
-     public void updateUpgradeMenu(GameObject character)
+    [ServerRpc(RequireOwnership = false)]
+     public void updateUpgradeMenuServerRpc(string name)
     {
+        GameObject character = GameObject.Find(name);
+
+        if (character == null)
+            return;
+        
+        Character charStats = character.GetComponent<Character>();
+        charName.text = charStats.getCharName();
+        charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
+        charImage.transform.localScale = character.transform.localScale;
+
+        weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
+        weaponIMG.transform.localScale = charStats.transform.GetChild(1).localScale;
+        charStats.updateCosts();
+
+        if (bodyDropdown.options.Count == 0)
+        {
+            string[] bodyNames = Enum.GetNames(typeof(Character.bodyType));
+            List<string> body = new List<string>(bodyNames);
+            bodyDropdown.AddOptions(body);
+        }
+        else
+        {
+            bodyDropdown.value = (int)charStats.GetBodyType();
+        }
+
+        if (weaponDropdown.options.Count == 0)
+        {
+            List<string> weapons = new List<string>();
+
+            for (int i = 0; i < weaponSprites.transform.childCount; i++)
+            {
+                weapons.Add(weaponSprites.transform.GetChild(i).name);
+            }
+
+            weaponDropdown.AddOptions(weapons);
+        }
+        else
+        {
+            weaponDropdown.value = (int)charStats.GetWeaponType();
+        }
+
+        hpNUM.text = "" + charStats.baseHP;
+        strNUM.text = "" + charStats.baseSTR;
+        magNUM.text = "" + charStats.baseMAG;
+        defNUM.text = "" + charStats.baseDEF;
+        resNUM.text = "" + charStats.baseRES;
+        spdNUM.text = "" + charStats.baseSPD;
+        movNUM.text = "" + charStats.baseMOV;
+
+        weaponRange.text = "RNG: " + charStats.getAttackRange();
+        weaponStats1.text = "";
+        weaponStats2.text = "";
+
+        if (charStats.HPMOD == 0 && charStats.STRMOD == 0 && charStats.MAGMOD == 0 && charStats.DEFMOD == 0
+            && charStats.RESMOD == 0 && charStats.SPDMOD == 0 && charStats.MOVMOD == 0)
+        {
+            //weaponStatsPanel.gameObject.SetActive(false);
+            weaponStats1.text = "";
+            weaponStats2.text = "";
+        }
+
+        if (charStats.HPMOD == 0)
+            hpMOD.text = "";
+        else if (charStats.HPMOD > 0)
+        {
+            hpMOD.color = Color.green;
+            hpMOD.text = "+ " + charStats.HPMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            weaponStats1.color = Color.green;
+            weaponStats1.text = "+" + charStats.HPMOD + " HP";
+        }
+        else
+        {
+            hpMOD.color = Color.red;
+            hpMOD.text = "- " + Mathf.Abs(charStats.HPMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            weaponStats1.color = Color.red;
+            weaponStats1.text = "-" + Mathf.Abs(charStats.HPMOD) + " HP";
+        }
+
+        if (charStats.STRMOD == 0)
+            strMOD.text = "";
+        else if (charStats.STRMOD > 0)
+        {
+            strMOD.color = Color.green;
+            strMOD.text = "+ " + charStats.STRMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.STRMOD + " STR";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.STRMOD + " STR";
+            }
+        }
+        else
+        {
+            strMOD.color = Color.red;
+            strMOD.text = "- " + Mathf.Abs(charStats.STRMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.STRMOD) + " STR";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.STRMOD) + " STR";
+            }
+        }
+
+        if (charStats.MAGMOD == 0)
+            magMOD.text = "";
+        else if (charStats.MAGMOD > 0)
+        {
+            magMOD.color = Color.green;
+            magMOD.text = "+ " + charStats.MAGMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.MAGMOD + " MAG";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.MAGMOD + " MAG";
+            }
+        }
+        else
+        {
+            magMOD.color = Color.red;
+            magMOD.text = "- " + Mathf.Abs(charStats.MAGMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.MAGMOD) + " MAG";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.MAGMOD) + " MAG";
+            }
+        }
+
+        if (charStats.DEFMOD == 0)
+            defMOD.text = "";
+        else if (charStats.DEFMOD > 0)
+        {
+            defMOD.color = Color.green;
+            defMOD.text = "+ " + charStats.DEFMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.DEFMOD + " DEF";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.DEFMOD + " DEF";
+            }
+        }
+        else
+        {
+            defMOD.color = Color.red;
+            defMOD.text = "- " + Mathf.Abs(charStats.DEFMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.DEFMOD) + " DEF";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.DEFMOD) + " DEF";
+            }
+        }
+
+        if (charStats.RESMOD == 0)
+            resMOD.text = "";
+        else if (charStats.RESMOD > 0)
+        {
+            resMOD.color = Color.green;
+            resMOD.text = "+ " + charStats.RESMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.RESMOD + " RES";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.RESMOD + " RES";
+            }
+        }
+        else
+        {
+            resMOD.color = Color.red;
+            resMOD.text = "- " + Mathf.Abs(charStats.RESMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.RESMOD) + " RES";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.RESMOD) + " RES";
+            }
+        }
+
+        if (charStats.SPDMOD == 0)
+            spdMOD.text = "";
+        else if (charStats.SPDMOD > 0)
+        {
+            spdMOD.color = Color.green;
+            spdMOD.text = "+ " + charStats.SPDMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.SPDMOD + " SPD";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.SPDMOD + " SPD";
+            }
+        }
+        else
+        {
+            spdMOD.color = Color.red;
+            spdMOD.text = "- " + Mathf.Abs(charStats.SPDMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.SPDMOD) + " SPD";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.SPDMOD) + " SPD";
+            }
+        }
+
+        if (charStats.MOVMOD == 0)
+            movMOD.text = "";
+        else if (charStats.MOVMOD > 0)
+        {
+            movMOD.color = Color.green;
+            movMOD.text = "+ " + charStats.MOVMOD;
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.green;
+                weaponStats1.text = "+" + charStats.MOVMOD + " MOV";
+            }
+            else
+            {
+                weaponStats2.color = Color.green;
+                weaponStats2.text = "+" + charStats.MOVMOD + " MOV";
+            }
+        }
+        else
+        {
+            movMOD.color = Color.red;
+            movMOD.text = "- " + Mathf.Abs(charStats.MOVMOD);
+            weaponStatsPanel.gameObject.SetActive(true);
+            if (weaponStats1.text == "")
+            {
+                weaponStats1.color = Color.red;
+                weaponStats1.text = "-" + Mathf.Abs(charStats.MOVMOD) + " MOV";
+            }
+            else
+            {
+                weaponStats2.color = Color.red;
+                weaponStats2.text = "-" + Mathf.Abs(charStats.MOVMOD) + " MOV";
+            }
+        }
+
+        if (charStats.baseHP < charStats.getHPMAX())
+        {
+            hpButton.gameObject.SetActive(true);
+            hpCOST.text = "x" + charStats.HPCost;
+        }
+        else
+        {
+            hpCOST.text = "MAX";
+            hpButton.gameObject.SetActive(false);
+        }
+
+
+        if (charStats.baseSTR < charStats.getSTRMAX())
+        {
+            strButton.gameObject.SetActive(true);
+            strCOST.text = "x" + charStats.STRCost;
+        }        
+        else
+        {
+            strCOST.text = "MAX";
+            strButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseMAG < charStats.getMAGMAX())
+        {
+            magButton.gameObject.SetActive(true);
+            magCOST.text = "x" + charStats.MAGCost;
+        }
+        else
+        {
+            magCOST.text = "MAX";
+            magButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseDEF < charStats.getDEFMAX())
+        {
+            defButton.gameObject.SetActive(true);
+            defCOST.text = "x" + charStats.DEFCost;
+        }   
+        else
+        {
+            defCOST.text = "MAX";
+            defButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseRES < charStats.getRESMAX())
+        {
+            resButton.gameObject.SetActive(true);
+            resCOST.text = "x" + charStats.RESCost;
+        } 
+        else
+        {
+            resCOST.text = "MAX";
+            resButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseSPD < charStats.getSPDMAX())
+        {
+            spdButton.gameObject.SetActive(true);
+            spdCOST.text = "x" + charStats.SPDCost;
+        }       
+        else
+        {
+            spdCOST.text = "MAX";
+            spdButton.gameObject.SetActive(false);
+        }
+
+        if (charStats.baseMOV < charStats.getMOVMAX())
+        {
+            movButton.gameObject.SetActive(true);
+            movCOST.text = "x" + charStats.MOVCost;
+        }         
+        else
+        {
+            movCOST.text = "MAX";
+            movButton.gameObject.SetActive(false);
+        }
+
+        updateUpgradeMenuClientRpc(character.name);
+    }
+
+     [ServerRpc(RequireOwnership = false)]
+     public void changedNameServerRpc(string s, ServerRpcParams serverRpcParams)
+     {
+         if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
+         {
+             p1TargetedStats.setCharName(s);
+             changedNameClientRpc(s,p1Targeted.name);
+             
+         }
+         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
+         {
+             p2TargetedStats.setCharName(s);
+             changedNameClientRpc(s,p2Targeted.name);
+         }
+     }
+
+     [ClientRpc]
+     public void changedNameClientRpc(string s, string name)
+     {
+         GameObject target = GameObject.Find(name);
+         Character targetStats = target.GetComponent<Character>();
+         targetStats.setCharName(s);
+         updateUpgradeMenuServerRpc(target.name);
+     }
+     
+     public void changedName()
+     {
+         changedNameServerRpc(charName.text,new ServerRpcParams());
+     }
+
+     public void changedBody(Dropdown d)
+     {
+         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+         {
+             if (p1Targeted != null)
+                changedBodyServerRpc(d.value, p1Targeted.name);
+         }
+         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+         {
+             if (p2Targeted != null)
+                changedBodyServerRpc(d.value, p2Targeted.name);
+         }
+     }
+     
+     [ClientRpc]
+     public void changedBodyClientRpc(int val, string name)
+     {
+         GameObject unit = GameObject.Find(name);
+         unit.GetComponent<Character>().changeBody((Character.bodyType)val);
+         updateUpgradeMenuServerRpc(unit.name);
+     }
+     
+     [ServerRpc(RequireOwnership = false)]
+     public void changedBodyServerRpc(int val, string name)
+     {
+         GameObject unit = GameObject.Find(name);
+         Character unitStats = unit.GetComponent<Character>();
+         unitStats.changeBody((Character.bodyType)val);
+         changedBodyClientRpc(val, unit.name);
+         updateUpgradeMenuServerRpc(unit.name);
+     }
+
+     [ClientRpc]
+     public void changedWeaponClientRpc(int val, string name)
+     {
+         GameObject unit = GameObject.Find(name);
+         unit.GetComponent<Character>().changeWeapon((Character.weaponType)val);
+         updateUpgradeMenuServerRpc(unit.name);
+     }
+
+     [ServerRpc(RequireOwnership = false)]
+     public void changedWeaponServerRpc(int val, string name)
+     {
+         GameObject unit = GameObject.Find(name);
+         Character unitStats = unit.GetComponent<Character>();
+         unitStats.changeWeapon((Character.weaponType)val);
+         changedWeaponClientRpc(val, unit.name);
+         updateUpgradeMenuServerRpc(unit.name);
+     }
+     
+     public void changedWeapon(Dropdown d)
+     {
+         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+         {
+             if (p1Targeted != null)
+                changedWeaponServerRpc(d.value, p1Targeted.name);
+         }
+         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+         {
+             if (p2Targeted != null)
+                changedWeaponServerRpc(d.value, p2Targeted.name);
+         }
+     }
+
+    [ClientRpc]
+    public void p1UpgradeClientRpc()
+    {
+        
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+        {
+            return;
+        }
+        contextMenu.SetActive(false);
+        upgradeMenu.gameObject.SetActive(true);
+        updateUpgradeMenuServerRpc(p1Targeted.name);
+
+    }
+
+    public void hpButtonPressed()
+    {
+        hpButtonPressedServerRpc(new ServerRpcParams());
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+        {
+            updateUpgradeMenuServerRpc(p1Targeted.name);
+            
+        }
+        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+        {
+            updateUpgradeMenuServerRpc(p2Targeted.name);
+        }
+    }
+
+    [ClientRpc]
+    public void updateUpgradeMenuClientRpc(string name)
+    {
+        GameObject character = GameObject.Find(name);
+        
+        if (character == null)
+            return;
+        
         Character charStats = character.GetComponent<Character>();
         charName.text = charStats.getCharName();
         charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
@@ -2024,127 +2652,6 @@ public class MGameController : NetworkBehaviour
             movButton.gameObject.SetActive(false);
         }
     }
-
-     [ServerRpc(RequireOwnership = false)]
-     public void changedNameServerRpc(string s, ServerRpcParams serverRpcParams)
-     {
-         if (serverRpcParams.Receive.SenderClientId == (ulong)player1)
-         {
-             p1TargetedStats.setCharName(s);
-             changedNameClientRpc(s,p1Targeted.name);
-             
-         }
-         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
-         {
-             p2TargetedStats.setCharName(s);
-             changedNameClientRpc(s,p2Targeted.name);
-         }
-     }
-
-     [ClientRpc]
-     public void changedNameClientRpc(string s, string name)
-     {
-         GameObject target = GameObject.Find(name);
-         Character targetStats = target.GetComponent<Character>();
-         targetStats.setCharName(s);
-     }
-     
-     public void changedName()
-     {
-         changedNameServerRpc(charName.text,new ServerRpcParams());
-     }
-
-     public void changedBody(Dropdown d)
-     {
-         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
-         {
-             if (p1Targeted != null)
-                changedBodyServerRpc(d.value, p1Targeted.name);
-         }
-         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
-         {
-             if (p2Targeted != null)
-                changedBodyServerRpc(d.value, p2Targeted.name);
-         }
-     }
-     
-     [ClientRpc]
-     public void changedBodyClientRpc(int val, string name)
-     {
-         GameObject unit = GameObject.Find(name);
-         unit.GetComponent<Character>().changeBody((Character.bodyType)val);
-         updateUpgradeMenu(unit);
-     }
-     
-     [ServerRpc(RequireOwnership = false)]
-     public void changedBodyServerRpc(int val, string name)
-     {
-         GameObject unit = GameObject.Find(name);
-         Character unitStats = unit.GetComponent<Character>();
-         unitStats.changeBody((Character.bodyType)val);
-         updateUpgradeMenu(unit);
-         changedBodyClientRpc(val, unit.name);
-     }
-
-     [ClientRpc]
-     public void changedWeaponClientRpc(int val, string name)
-     {
-         GameObject unit = GameObject.Find(name);
-         unit.GetComponent<Character>().changeWeapon((Character.weaponType)val);
-         updateUpgradeMenu(unit);
-     }
-
-     [ServerRpc(RequireOwnership = false)]
-     public void changedWeaponServerRpc(int val, string name)
-     {
-         GameObject unit = GameObject.Find(name);
-         Character unitStats = unit.GetComponent<Character>();
-         unitStats.changeWeapon((Character.weaponType)val);
-         updateUpgradeMenu(unit);
-         changedWeaponClientRpc(val, unit.name);
-     }
-     
-     public void changedWeapon(Dropdown d)
-     {
-         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
-         {
-             if (p1Targeted != null)
-                changedWeaponServerRpc(d.value, p1Targeted.name);
-         }
-         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
-         {
-             if (p2Targeted != null)
-                changedWeaponServerRpc(d.value, p2Targeted.name);
-         }
-     }
-
-    [ClientRpc]
-    public void p1UpgradeClientRpc()
-    {
-        
-        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
-        {
-            return;
-        }
-        contextMenu.SetActive(false);
-        upgradeMenu.gameObject.SetActive(true);
-        updateUpgradeMenu(p1Targeted);
-
-    }
-
-    public void hpButtonPressed()
-    {
-        hpButtonPressedServerRpc(new ServerRpcParams());
-        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
-        {
-            updateUpgradeMenu(p1Targeted);
-            
-        }
-        else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
-        {
-            updateUpgradeMenu(p2Targeted);
-        }
-    }
     
     [ServerRpc(RequireOwnership = false)]
     public void hpButtonPressedServerRpc(ServerRpcParams serverRpcParams)
@@ -2156,9 +2663,9 @@ public class MGameController : NetworkBehaviour
                 giveGearNum(-p1TargetedStats.HPCost,false);
                 p1TargetedStats.baseHP = p1TargetedStats.baseHP + 1;
                 p1TargetedStats.hpLeft = p1TargetedStats.hpLeft + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passHpStatClientRpc(p1Targeted.name,p1TargetedStats.hpLeft,p1TargetedStats.baseHP);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
             }
         }
         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
@@ -2168,9 +2675,9 @@ public class MGameController : NetworkBehaviour
                 giveGearNum(-p2TargetedStats.HPCost,true);
                 p2TargetedStats.baseHP = p2TargetedStats.baseHP + 1;
                 p2TargetedStats.hpLeft = p2TargetedStats.hpLeft + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passHpStatClientRpc(p2Targeted.name,p2TargetedStats.hpLeft,p2TargetedStats.baseHP);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
             }
         }
     }
@@ -2180,12 +2687,12 @@ public class MGameController : NetworkBehaviour
         strButtonPressedServerRpc(new ServerRpcParams());
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
-            updateUpgradeMenu(p1Targeted);
+            updateUpgradeMenuServerRpc(p1Targeted.name);
             
         }
         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
-            updateUpgradeMenu(p2Targeted);
+            updateUpgradeMenuServerRpc(p2Targeted.name);
         }
     }
     
@@ -2199,9 +2706,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p1TargetedStats.STRCost,false);
                 p1TargetedStats.baseSTR = p1TargetedStats.baseSTR + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passStrClientRpc(p1Targeted.name,p1TargetedStats.baseSTR);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
             }
         }
         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
@@ -2210,9 +2717,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p2TargetedStats.STRCost,true);
                 p2TargetedStats.baseSTR = p2TargetedStats.baseSTR + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passStrClientRpc(p2Targeted.name,p2TargetedStats.baseSTR);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
             }
         }
     }
@@ -2222,12 +2729,12 @@ public class MGameController : NetworkBehaviour
         magButtonPressedServerRpc(new ServerRpcParams());
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
-            updateUpgradeMenu(p1Targeted);
+            updateUpgradeMenuServerRpc(p1Targeted.name);
             
         }
         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
-            updateUpgradeMenu(p2Targeted);
+            updateUpgradeMenuServerRpc(p2Targeted.name);
         }
     }
     
@@ -2240,9 +2747,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p1TargetedStats.MAGCost,false);
                 p1TargetedStats.baseMAG = p1TargetedStats.baseMAG + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passMagClientRpc(p1Targeted.name,p1TargetedStats.baseMAG);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
 
             }
         }
@@ -2252,9 +2759,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p2TargetedStats.MAGCost,true);
                 p2TargetedStats.baseMAG = p2TargetedStats.baseMAG + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passMagClientRpc(p2Targeted.name,p2TargetedStats.baseMAG);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
             }
         }
     }
@@ -2264,12 +2771,12 @@ public class MGameController : NetworkBehaviour
         defButtonPressedServerRpc(new ServerRpcParams());
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
-            updateUpgradeMenu(p1Targeted);
+            updateUpgradeMenuServerRpc(p1Targeted.name);
             
         }
         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
-            updateUpgradeMenu(p2Targeted);
+            updateUpgradeMenuServerRpc(p2Targeted.name);
         }
     }
 
@@ -2282,9 +2789,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p1TargetedStats.DEFCost,false);
                 p1TargetedStats.baseDEF = p1TargetedStats.baseDEF + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passDefClientRpc(p1Targeted.name,p1TargetedStats.baseDEF);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
 
             }
         }
@@ -2294,9 +2801,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p2TargetedStats.DEFCost,true);
                 p2TargetedStats.baseDEF = p2TargetedStats.baseDEF + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passDefClientRpc(p2Targeted.name,p2TargetedStats.baseDEF);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
 
             }
         }
@@ -2306,12 +2813,12 @@ public class MGameController : NetworkBehaviour
         resButtonPressedServerRpc(new ServerRpcParams());
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
-            updateUpgradeMenu(p1Targeted);
+            updateUpgradeMenuServerRpc(p1Targeted.name);
             
         }
         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
-            updateUpgradeMenu(p2Targeted);
+            updateUpgradeMenuServerRpc(p2Targeted.name);
         }
     }
 
@@ -2324,9 +2831,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p1TargetedStats.RESCost,false);
                 p1TargetedStats.baseRES = p1TargetedStats.baseRES + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passResClientRpc(p1Targeted.name,p1TargetedStats.baseRES);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
             }
         }
         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
@@ -2335,9 +2842,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p2TargetedStats.RESCost,true);
                 p2TargetedStats.baseRES = p2TargetedStats.baseRES + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passResClientRpc(p2Targeted.name,p2TargetedStats.baseRES);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
             }
         }
     }
@@ -2347,11 +2854,11 @@ public class MGameController : NetworkBehaviour
         spdButtonPressedServerRpc(new ServerRpcParams());
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
-            updateUpgradeMenu(p1Targeted);
+            updateUpgradeMenuServerRpc(p1Targeted.name);
         }
         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
-            updateUpgradeMenu(p2Targeted);
+            updateUpgradeMenuServerRpc(p2Targeted.name);
         }
     }
 
@@ -2364,9 +2871,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p1TargetedStats.SPDCost,false);
                 p1TargetedStats.baseSPD = p1TargetedStats.baseSPD + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats();
                 passSpdClientRpc(p1Targeted.name,p1TargetedStats.baseSPD);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
             }
         }
         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
@@ -2375,9 +2882,9 @@ public class MGameController : NetworkBehaviour
             {
                 giveGearNum(-p2TargetedStats.SPDCost,true);
                 p2TargetedStats.baseSPD = p2TargetedStats.baseSPD + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();
                 passSpdClientRpc(p2Targeted.name,p2TargetedStats.baseSPD);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
             }
         }
     }
@@ -2387,11 +2894,11 @@ public class MGameController : NetworkBehaviour
         movButtonPressedServerRpc(new ServerRpcParams());
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
-            updateUpgradeMenu(p1Targeted);
+            updateUpgradeMenuServerRpc(p1Targeted.name);
         }
         else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
         {
-            updateUpgradeMenu(p2Targeted);
+            updateUpgradeMenuServerRpc(p2Targeted.name);
         }
     }
     
@@ -2405,9 +2912,9 @@ public class MGameController : NetworkBehaviour
                 giveGearNum(-p1TargetedStats.MOVCost,false);
                 p1TargetedStats.baseMOV = p1TargetedStats.baseMOV + 1;
                 p1TargetedStats.movLeft = p1TargetedStats.movLeft + 1;
-                updateUpgradeMenu(p1Targeted);
                 p1TargetedStats.updateStats(); 
                 passMovStatClientRpc(p1Targeted.name,p1TargetedStats.movLeft,p1TargetedStats.baseMOV);
+                updateUpgradeMenuServerRpc(p1Targeted.name);
             }
         }
         else if (serverRpcParams.Receive.SenderClientId == (ulong)player2)
@@ -2417,9 +2924,9 @@ public class MGameController : NetworkBehaviour
                 giveGearNum(-p2TargetedStats.MOVCost,true);
                 p2TargetedStats.baseMOV = p2TargetedStats.baseMOV + 1;
                 p2TargetedStats.movLeft = p2TargetedStats.movLeft + 1;
-                updateUpgradeMenu(p2Targeted);
                 p2TargetedStats.updateStats();          
                 passMovStatClientRpc(p2Targeted.name,p2TargetedStats.movLeft,p2TargetedStats.baseMOV);
+                updateUpgradeMenuServerRpc(p2Targeted.name);
             }
         }
     }
@@ -2433,7 +2940,7 @@ public class MGameController : NetworkBehaviour
         }
         contextMenu.SetActive(false);
         upgradeMenu.gameObject.SetActive(true);
-        updateUpgradeMenu(p2Targeted);
+        updateUpgradeMenuServerRpc(p2Targeted.name);
 
     }
 
@@ -2686,6 +3193,12 @@ public class MGameController : NetworkBehaviour
         currTurnMode = newTurnMode; 
     }
 
+    [ClientRpc]
+    public void passGameModeClientRpc(gameMode newGameMode)
+    {
+        currGameMode = newGameMode;
+    }
+
     public bool unitHere(Vector3Int pos)
     {
         for (int i = 0; i < p1.transform.childCount; i++)
@@ -2709,11 +3222,15 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void resetAllMoveServerRpc()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < p1.transform.childCount; i++)
         {
             p1Stats[i].resetMove();
-            p2Stats[i].resetMove();
             passMovStatClientRpc(p1Stats[i].name,p1Stats[i].movLeft,p1Stats[i].baseMOV);
+        }
+        
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            p2Stats[i].resetMove();
             passMovStatClientRpc(p2Stats[i].name,p2Stats[i].movLeft,p2Stats[i].baseMOV);
         }
     }
@@ -2721,11 +3238,15 @@ public class MGameController : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void resetAllAttackServerRpc()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < p1.transform.childCount; i++)
         {
             p1Stats[i].setAttack(true);
-            p2Stats[i].setAttack(true);
             passAtkStatClientRpc(p1Stats[i].name,p1Stats[i].getCanAttack());
+        }
+        
+        for (int i = 0; i < p2.transform.childCount; i++)
+        {
+            p2Stats[i].setAttack(true);
             passAtkStatClientRpc(p2Stats[i].name,p2Stats[i].getCanAttack());
         }
     }
@@ -2739,7 +3260,6 @@ public class MGameController : NetworkBehaviour
         targetStats.baseMOV = mov;
         targetStats.updateStats();
         targetStats.updateCosts();
-
     }
     
     [ClientRpc]
@@ -3189,7 +3709,7 @@ public class MGameController : NetworkBehaviour
     public void deselectButtonPressedServerRpc(ServerRpcParams serverRpcParams)
     {
         deselectTargetServerRpc(serverRpcParams); 
-        contextMenu.SetActive(false);
+        //contextMenu.SetActive(false);
     }
 
     public void inspectButtonPressed()

@@ -51,7 +51,7 @@ public class Character : MonoBehaviour
     private int MOVMAX = 6;
 
     public enum bodyType { Spring, Cog, Fisticuffs };
-    private bodyType currBody;
+    private bodyType currBody = 0;
     public enum weaponType { Sword, Bow, AirTome, Axe, Spear, FireTome, LightningTome, IceTome, WaterTome };
     private weaponType currWeapon = 0;
 
@@ -395,6 +395,7 @@ public class Character : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {       
+        Debug.Log("running start on " + charName);
         charName = gameObject.name;
         weaponSprites = GameObject.Find("WeaponSprites");
         bodySprites = GameObject.Find("BodySprites");

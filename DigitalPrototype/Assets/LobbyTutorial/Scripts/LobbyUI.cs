@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -89,8 +90,18 @@ public class LobbyUI : MonoBehaviour {
         }
     }
 
-    private void ClearLobby() {
-        foreach (Transform child in container) {
+    private void ClearLobby()
+    {
+        if (container == null)
+            return; 
+        
+        foreach (Transform child in container) 
+        {
+            if (child == null)
+            {
+                return; 
+            }
+            
             if (child == playerSingleTemplate) continue;
             Destroy(child.gameObject);
         }
