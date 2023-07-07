@@ -22,7 +22,7 @@ public class LobbyCreateUI : MonoBehaviour {
     
     private string lobbyName = "newLobby";
     private bool isPrivate;
-    private LobbyManager.Map map;
+    private LobbyManager.Map map = LobbyManager.Map.map1;
     private int unitNumber = 2;
     private int startingSprings = 20;
 

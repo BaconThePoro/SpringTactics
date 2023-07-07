@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
@@ -18,6 +19,7 @@ public class LobbyUI : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI playerCountText;
     [SerializeField] private TextMeshProUGUI gameModeText;
     [SerializeField] private Button leaveLobbyButton;
+    [SerializeField] private Button startGameButton;
 
 
     private void Awake() {
@@ -28,7 +30,13 @@ public class LobbyUI : MonoBehaviour {
         leaveLobbyButton.onClick.AddListener(() => {
             LobbyManager.Instance.LeaveLobby();
         });
+
+        startGameButton.onClick.AddListener(() =>
+        {
+            LobbyManager.Instance.StartGame();
+        });
         
+        startGameButton.gameObject.SetActive(false);
     }
 
     private void Start() {
@@ -39,7 +47,7 @@ public class LobbyUI : MonoBehaviour {
 
         Hide();
     }
-
+    
     private void LobbyManager_OnLeftLobby(object sender, System.EventArgs e) {
         ClearLobby();
         Hide();
@@ -74,6 +82,11 @@ public class LobbyUI : MonoBehaviour {
         gameModeText.text = lobby.Data[LobbyManager.KEY_WHICH_MAP].Value;
 
         Show();
+        
+        if (LobbyManager.Instance.IsLobbyHost() && lobby.Players.Count == 2)
+        {
+            startGameButton.gameObject.SetActive(true);
+        }
     }
 
     private void ClearLobby() {

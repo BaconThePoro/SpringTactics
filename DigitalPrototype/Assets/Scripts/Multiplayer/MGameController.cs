@@ -192,7 +192,9 @@ public class MGameController : NetworkBehaviour
     public GameObject weaponSprites = null; 
     public GameObject upgradeMenu = null;
 
-
+    // counts how many connected
+    private int clientsConnected = 0;
+    
     void Start()
     {
         //Getting all context menu buttons
@@ -354,20 +356,34 @@ public class MGameController : NetworkBehaviour
             i += 1;
         }
 
-        giveGearNum(10, false);
-        giveGearNum(10, true);
-        changeTurn(turnMode.Player1Turn);
-        changeMode(gameMode.MapMode);
-        updateTurnText();
-
-
+        clickLock = 3;
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
     }
 
+    [ServerRpc]
+    public void InitializeGameServerRpc()
+    {
+        if (clientsConnected != 2)
+            return;
+        
+        giveGearNum(10, false); ;
+        giveGearNum(10, true);
+        
+        changeTurn(turnMode.Player1Turn);
+        passTurnModeClientRpc(currTurnMode);
+        
+        changeMode(gameMode.MapMode);
+        
+        updateTurnText();
+        
+        clickLock = 0;
+        passClickLockClientRpc(clickLock);
+    }
+    
     private void OnClientConnectedCallback(ulong clientId)
     {
-        giveGearNum(0,false);
-        giveGearNum(0,true);
+        clientsConnected = clientsConnected + 1;
+        InitializeGameServerRpc();
     }
     
     void Update()
