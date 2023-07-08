@@ -19,6 +19,7 @@ public class LobbyCreateUI : MonoBehaviour {
     [SerializeField] private TMP_Dropdown unitNumDropdown;
     [SerializeField] private Slider springsSlider;
     [SerializeField] private TextMeshProUGUI springsEcho;
+    [SerializeField] private GameObject mapPreview; 
     
     private string lobbyName = "newLobby";
     private bool isPrivate;
@@ -160,7 +161,17 @@ public class LobbyCreateUI : MonoBehaviour {
             map = LobbyManager.Map.map5;
         }
         
+        hideMaps();
+        mapPreview.transform.GetChild(change.value).gameObject.SetActive(true);
         UpdateText();
+    }
+
+    private void hideMaps()
+    {
+        for (int i = 0; i < (mapPreview.transform.childCount - 1); i++)
+        {
+            mapPreview.transform.GetChild(i).gameObject.SetActive(false);
+        }
     }
 
     private void UpdateText() {
