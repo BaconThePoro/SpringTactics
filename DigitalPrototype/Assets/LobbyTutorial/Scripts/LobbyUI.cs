@@ -90,6 +90,10 @@ public class LobbyUI : MonoBehaviour {
         {
             startGameButton.gameObject.SetActive(true);
         }
+        else
+        {
+            startGameButton.gameObject.SetActive(false);
+        }
     }
 
     private void ClearLobby()

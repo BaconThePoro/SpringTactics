@@ -16,6 +16,7 @@ public class LobbyListUI : MonoBehaviour {
     [SerializeField] private Transform container;
     [SerializeField] private Button refreshButton;
     [SerializeField] private Button createLobbyButton;
+    [SerializeField] private Button leaveButton; 
 
 
     private void Awake() {
@@ -25,6 +26,7 @@ public class LobbyListUI : MonoBehaviour {
 
         refreshButton.onClick.AddListener(RefreshButtonClick);
         createLobbyButton.onClick.AddListener(CreateLobbyButtonClick);
+        leaveButton.onClick.AddListener(LeaveButtonClick);
     }
 
     private void Start() {
@@ -71,6 +73,11 @@ public class LobbyListUI : MonoBehaviour {
 
     private void CreateLobbyButtonClick() {
         LobbyCreateUI.Instance.Show();
+    }
+
+    private void LeaveButtonClick()
+    {
+        LobbySelect.Instance.Show();
     }
 
     private void Hide() {
