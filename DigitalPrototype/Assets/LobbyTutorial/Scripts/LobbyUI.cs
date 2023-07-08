@@ -21,6 +21,7 @@ public class LobbyUI : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI gameModeText;
     [SerializeField] private Button leaveLobbyButton;
     [SerializeField] private Button startGameButton;
+    [SerializeField] private TextMeshProUGUI codeTXT;
 
 
     private void Awake() {
@@ -45,7 +46,7 @@ public class LobbyUI : MonoBehaviour {
         LobbyManager.Instance.OnJoinedLobbyUpdate += UpdateLobby_Event;
         LobbyManager.Instance.OnLeftLobby += LobbyManager_OnLeftLobby;
         LobbyManager.Instance.OnKickedFromLobby += LobbyManager_OnLeftLobby;
-
+        
         Hide();
     }
     
@@ -60,6 +61,7 @@ public class LobbyUI : MonoBehaviour {
 
     private void UpdateLobby() {
         UpdateLobby(LobbyManager.Instance.GetJoinedLobby());
+        codeTXT.text = "Lobby Code: " + LobbyManager.Instance.GetJoinedLobby().LobbyCode;
     }
 
     private void UpdateLobby(Lobby lobby) {

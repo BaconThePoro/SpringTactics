@@ -271,10 +271,17 @@ public class LobbyManager : MonoBehaviour
     }
 
     public async void QuickJoinLobby() {
-        try {
+        try
+        {
+            Player player = GetPlayer();
             QuickJoinLobbyOptions options = new QuickJoinLobbyOptions();
 
-            Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
+            Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(new QuickJoinLobbyOptions
+            {
+                Player = player
+            });
+
+                
             joinedLobby = lobby;
 
             OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
