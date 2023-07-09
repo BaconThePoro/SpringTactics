@@ -232,6 +232,8 @@ public class LobbyManager : MonoBehaviour
         joinedLobby = lobby;
 
         OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
+        
+        lobbyData.setP2Name(playerName);
     }
 
     public async void JoinLobby(Lobby lobby) {
@@ -242,6 +244,8 @@ public class LobbyManager : MonoBehaviour
         });
 
         OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
+        
+        lobbyData.setP2Name(playerName);
     }
 
     public async void UpdatePlayerName(string playerName) {

@@ -195,6 +195,7 @@ public class MGameController : NetworkBehaviour
     public GameObject upgradeMenu = null;
 
     // Lobby/Multiplayer stuff
+    private string newLobbyCode; 
     private LobbyData lobbyData;
     private int clientsConnected = 0; // counts how many connected
     
@@ -3942,35 +3943,39 @@ public class MGameController : NetworkBehaviour
 
     private IEnumerator rematchcourotine()
     {
-        yield return new WaitForSeconds(.25f);
+        yield return new WaitForSeconds(.2f);
         AuthenticateUI.Instance.Hide();
         LobbySelect.Instance.Hide();
         LobbyListUI.Instance.Hide();
         LobbyUI.Instance.Show();
 
-        // player 1 is host
-        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+        // no lobby, create one
+        if (newLobbyCode == null)
         {
             LobbyManager.Instance.CreateLobby("newLobby", true, lobbyData.getMap(), lobbyData.getUnits(), lobbyData.getSprings());
-            yield return new WaitForSeconds(.25f);
+            yield return new WaitForSeconds(.2f);
+            newLobbyCode = LobbyManager.Instance.GetJoinedLobby().LobbyCode;
+            passLobbyCodeClientRpc(newLobbyCode);
+            yield return new WaitForSeconds(.2f);
             LobbyManager.Instance.UpdatePlayerName(lobbyData.getP1Name());
             EditPlayerName.Instance.SetPlayerNameText(lobbyData.getP1Name());
-            yield return new WaitForSeconds(.25f);
-            passLobbyClientRpc(LobbyManager.Instance.GetJoinedLobby().LobbyCode);
+        }
+        else
+        {
+            LobbyManager.Instance.JoinLobbyByCode(newLobbyCode);
+            yield return new WaitForSeconds(.2f);
+            LobbyManager.Instance.UpdatePlayerName(lobbyData.getP2Name());
+            EditPlayerName.Instance.SetPlayerNameText(lobbyData.getP2Name());
         }
 
-        yield return new WaitForSeconds(.25f);
+        yield return new WaitForSeconds(.2f);
         SceneManager.UnloadSceneAsync("MultiplayerScene");
     }
 
     [ClientRpc]
-    private void passLobbyClientRpc(string lobbyCode)
+    private void passLobbyCodeClientRpc(string newCode)
     {
-        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
-            return;
-        
-        LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
+        newLobbyCode = newCode;
     }
-
 }
 
