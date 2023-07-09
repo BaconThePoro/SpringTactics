@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using Vector3 = UnityEngine.Vector3;
 using Unity.Netcode;
+using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -3941,12 +3942,31 @@ public class MGameController : NetworkBehaviour
 
     private IEnumerator rematchcourotine()
     {
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(.25f);
         AuthenticateUI.Instance.Hide();
         LobbySelect.Instance.Hide();
         LobbyListUI.Instance.Hide();
-        yield return new WaitForSeconds(.5f);
+        LobbyUI.Instance.Show();
+
+        // player 1 is host
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+        {
+            LobbyManager.Instance.CreateLobby("newLobby", true, lobbyData.getMap(), lobbyData.getUnits(), lobbyData.getSprings());
+            yield return new WaitForSeconds(.5f);
+            //passLobbyClientRpc(LobbyManager.Instance.GetJoinedLobby().LobbyCode);
+        }
+
+        yield return new WaitForSeconds(.25f);
         SceneManager.UnloadSceneAsync("MultiplayerScene");
+    }
+
+    [ClientRpc]
+    private void passLobbyClientRpc(string lobbyCode)
+    {
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+            return;
+        
+        LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
     }
 
 }
