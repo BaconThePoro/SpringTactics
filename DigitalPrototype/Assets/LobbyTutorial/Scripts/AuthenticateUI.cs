@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,19 +6,22 @@ using UnityEngine.UI;
 
 public class AuthenticateUI : MonoBehaviour {
 
-
+    public static AuthenticateUI Instance { get; private set; }
     [SerializeField] private Button authenticateButton;
 
 
     private void Awake() {
+        Instance = this;
+
         authenticateButton.onClick.AddListener(() => {
             LobbyManager.Instance.Authenticate(EditPlayerName.Instance.GetPlayerName());
             Hide();
         });
     }
 
-    private void Hide() {
+    public void Hide() {
         gameObject.SetActive(false);
     }
 
+  
 }

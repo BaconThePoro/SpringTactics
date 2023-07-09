@@ -52,7 +52,7 @@ public class LobbySelect : MonoBehaviour
         });
     }
     
-    private void Hide() {
+    public void Hide() {
         gameObject.SetActive(false);
     }
 
@@ -61,10 +61,7 @@ public class LobbySelect : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    
 
     // Update is called once per frame
     void Update()
