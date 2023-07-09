@@ -59,9 +59,10 @@ public class LobbyUI : MonoBehaviour {
         UpdateLobby();
     }
 
-    private void UpdateLobby() {
+    public void UpdateLobby() {
         UpdateLobby(LobbyManager.Instance.GetJoinedLobby());
         codeTXT.text = "Lobby Code: " + LobbyManager.Instance.GetJoinedLobby().LobbyCode;
+        
     }
 
     private void UpdateLobby(Lobby lobby) {

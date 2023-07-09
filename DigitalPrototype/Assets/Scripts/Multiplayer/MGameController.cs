@@ -3952,8 +3952,11 @@ public class MGameController : NetworkBehaviour
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
         {
             LobbyManager.Instance.CreateLobby("newLobby", true, lobbyData.getMap(), lobbyData.getUnits(), lobbyData.getSprings());
-            yield return new WaitForSeconds(.5f);
-            //passLobbyClientRpc(LobbyManager.Instance.GetJoinedLobby().LobbyCode);
+            yield return new WaitForSeconds(.25f);
+            LobbyManager.Instance.UpdatePlayerName(lobbyData.getP1Name());
+            EditPlayerName.Instance.SetPlayerNameText(lobbyData.getP1Name());
+            yield return new WaitForSeconds(.25f);
+            passLobbyClientRpc(LobbyManager.Instance.GetJoinedLobby().LobbyCode);
         }
 
         yield return new WaitForSeconds(.25f);

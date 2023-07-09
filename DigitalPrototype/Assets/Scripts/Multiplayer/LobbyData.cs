@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class LobbyData : MonoBehaviour
 {
+    public static LobbyData Instance { get; private set; }
+    
+    private string p1Name;
+    private string p2Name; 
     private LobbyManager.Map map = LobbyManager.Map.map1;
     private int startingSprings = 20;
     private int unitNumber = 2;
@@ -11,6 +15,8 @@ public class LobbyData : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Instance = this;
+        
         DontDestroyOnLoad(gameObject);
     }
 
@@ -18,6 +24,26 @@ public class LobbyData : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public string getP1Name()
+    {
+        return p1Name;
+    }
+    
+    public string getP2Name()
+    {
+        return p2Name;
+    }
+    
+    public void setP1Name(string newName)
+    {
+        p1Name = newName;
+    }
+    
+    public void setP2Name(string newName)
+    {
+        p2Name = newName;
     }
     
     public LobbyManager.Map getMap()

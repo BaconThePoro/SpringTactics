@@ -191,6 +191,7 @@ public class LobbyManager : MonoBehaviour
         lobbyData.setMap(map);
         lobbyData.setUnits(unitNumber);
         lobbyData.setSprings(startingSprings);
+        lobbyData.setP1Name(playerName);
     }
 
     public async void RefreshLobbyList() {

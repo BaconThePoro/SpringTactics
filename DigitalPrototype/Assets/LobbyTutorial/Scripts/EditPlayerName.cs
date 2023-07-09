@@ -52,5 +52,10 @@ public class EditPlayerName : MonoBehaviour {
         return playerName;
     }
 
+    public void SetPlayerNameText(string newName)
+    {
+        playerNameText.text = newName;
+    }
+
 
 }
