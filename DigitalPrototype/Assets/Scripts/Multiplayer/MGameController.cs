@@ -3936,9 +3936,17 @@ public class MGameController : NetworkBehaviour
     public void rematch()
     {
         SceneManager.LoadScene("NewLobby", LoadSceneMode.Additive);
+        StartCoroutine(rematchcourotine());
+    }
+
+    private IEnumerator rematchcourotine()
+    {
+        yield return new WaitForSeconds(.5f);
         AuthenticateUI.Instance.Hide();
-        LobbySelect.Instance.Hide(); 
-        
+        LobbySelect.Instance.Hide();
+        LobbyListUI.Instance.Hide();
+        yield return new WaitForSeconds(.5f);
+        SceneManager.UnloadSceneAsync("MultiplayerScene");
     }
 
 }

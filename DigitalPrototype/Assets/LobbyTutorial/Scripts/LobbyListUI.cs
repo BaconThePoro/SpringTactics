@@ -80,7 +80,7 @@ public class LobbyListUI : MonoBehaviour {
         LobbySelect.Instance.Show();
     }
 
-    private void Hide() {
+    public void Hide() {
         gameObject.SetActive(false);
     }
 
