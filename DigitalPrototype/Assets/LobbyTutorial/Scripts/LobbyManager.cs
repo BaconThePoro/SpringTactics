@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
@@ -10,8 +11,6 @@ using UnityEngine.SceneManagement;
 
 public class LobbyManager : MonoBehaviour
 {
-
-    [SerializeField] private LobbyData lobbyData = null; 
     public static LobbyManager Instance { get; private set; }
     
     public const string KEY_PLAYER_NAME = "PlayerName";
@@ -188,10 +187,10 @@ public class LobbyManager : MonoBehaviour
 
         Debug.Log("Created Lobby " + lobby.Name + "( " + map + ", " + startingSprings + ", " + unitNumber + ")");
         
-        lobbyData.setMap(map);
-        lobbyData.setUnits(unitNumber);
-        lobbyData.setSprings(startingSprings);
-        lobbyData.setP1Name(playerName);
+        LobbyData.Instance.setMap(map);
+        LobbyData.Instance.setUnits(unitNumber);
+        LobbyData.Instance.setSprings(startingSprings);
+        LobbyData.Instance.setName(playerName);
     }
 
     public async void RefreshLobbyList() {
@@ -233,7 +232,7 @@ public class LobbyManager : MonoBehaviour
 
         OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
         
-        lobbyData.setP2Name(playerName);
+        LobbyData.Instance.setName(playerName);
     }
 
     public async void JoinLobby(Lobby lobby) {
@@ -244,8 +243,14 @@ public class LobbyManager : MonoBehaviour
         });
 
         OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
+        passP2NameServerRpc(playerName);
         
-        lobbyData.setP2Name(playerName);
+    }
+
+    [ServerRpc]
+    public void passP2NameServerRpc(string newName)
+    {
+        LobbyData.Instance.setName(newName);
     }
 
     public async void UpdatePlayerName(string playerName) {

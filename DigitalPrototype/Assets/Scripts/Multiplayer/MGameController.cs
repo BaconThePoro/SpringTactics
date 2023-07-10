@@ -195,8 +195,8 @@ public class MGameController : NetworkBehaviour
     public GameObject upgradeMenu = null;
 
     // Lobby/Multiplayer stuff
-    private string newLobbyCode; 
-    private LobbyData lobbyData;
+    private bool initialized = false; 
+    private string newLobbyCode;
     private int clientsConnected = 0; // counts how many connected
     
     void Start()
@@ -364,7 +364,6 @@ public class MGameController : NetworkBehaviour
         }
 
         clickLock = 3;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
     }
 
     public void turnOffGrids()
@@ -381,14 +380,11 @@ public class MGameController : NetworkBehaviour
         //if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
            // return;
         
-        if (clientsConnected != 2)
+        if (NetworkManager.Singleton.ConnectedClientsList.Count != 2)
             return;
 
-        // grab lobbyData
-        lobbyData = GameObject.Find("LobbyData").GetComponent<LobbyData>();
-        
         // pick map
-        currGrid = gridParent.transform.GetChild((int)lobbyData.getMap()).GetComponent<Grid>();
+        currGrid = gridParent.transform.GetChild((int)LobbyData.Instance.getMap()).GetComponent<Grid>();
         overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
         collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
         pathfinding = new MPathfinding(17, 11, collisionMap);
@@ -396,11 +392,11 @@ public class MGameController : NetworkBehaviour
         currGrid.gameObject.SetActive(true);
         
         // assign lobby spring amount
-        giveGearNum(lobbyData.getSprings(), false); ;
-        giveGearNum(lobbyData.getSprings(), true);
+        giveGearNum(LobbyData.Instance.getSprings(), false); ;
+        giveGearNum(LobbyData.Instance.getSprings(), true);
         
         // create lobby character number
-        for (int j = 0; j < (10 - lobbyData.getUnits()); j++)
+        for (int j = 0; j < (10 - LobbyData.Instance.getUnits()); j++)
         {
             p1Units[9 - j].transform.parent = null; 
             p2Units[9 - j].transform.parent = null; 
@@ -441,7 +437,7 @@ public class MGameController : NetworkBehaviour
 
             i += 1;
         }
-        InitializeGameClientRpc(lobbyData.getUnits(), (int)lobbyData.getMap());
+        InitializeGameClientRpc(LobbyData.Instance.getUnits(), (int)LobbyData.Instance.getMap());
         
         changeTurn(turnMode.Player1Turn);
         passTurnModeClientRpc(currTurnMode);
@@ -511,15 +507,22 @@ public class MGameController : NetworkBehaviour
             i += 1;
         }
     }
-    
-    private void OnClientConnectedCallback(ulong clientId)
+
+    private IEnumerator delayInitialize()
     {
-        clientsConnected = clientsConnected + 1;
+        yield return new WaitForSeconds(1);
         InitializeGameServerRpc();
     }
     
     void Update()
     {
+        if ((NetworkManager.Singleton.IsHost == true) && (initialized == false) && (NetworkManager.Singleton.ConnectedClientsList.Count == 2))
+        {
+            initialized = true; 
+            StartCoroutine(delayInitialize());
+        }
+        
+        
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             if (NetworkManager.Singleton.LocalClientId == (ulong)player1 && (clickLock == 1 || clickLock == 3))
@@ -3952,26 +3955,35 @@ public class MGameController : NetworkBehaviour
         // no lobby, create one
         if (newLobbyCode == null)
         {
-            LobbyManager.Instance.CreateLobby("newLobby", true, lobbyData.getMap(), lobbyData.getUnits(), lobbyData.getSprings());
+            LobbyManager.Instance.CreateLobby("newLobby", true, LobbyData.Instance.getMap(), 
+                LobbyData.Instance.getUnits(), LobbyData.Instance.getSprings());
             yield return new WaitForSeconds(.2f);
             newLobbyCode = LobbyManager.Instance.GetJoinedLobby().LobbyCode;
-            passLobbyCodeClientRpc(newLobbyCode);
+            passLobbyCodeServerRpc(newLobbyCode);
             yield return new WaitForSeconds(.2f);
-            LobbyManager.Instance.UpdatePlayerName(lobbyData.getP1Name());
-            EditPlayerName.Instance.SetPlayerNameText(lobbyData.getP1Name());
+            LobbyManager.Instance.UpdatePlayerName("Host");
+            EditPlayerName.Instance.SetPlayerNameText("Host");
         }
         else
         {
             LobbyManager.Instance.JoinLobbyByCode(newLobbyCode);
             yield return new WaitForSeconds(.2f);
-            LobbyManager.Instance.UpdatePlayerName(lobbyData.getP2Name());
-            EditPlayerName.Instance.SetPlayerNameText(lobbyData.getP2Name());
+            LobbyManager.Instance.UpdatePlayerName("Client");
+            EditPlayerName.Instance.SetPlayerNameText("Client");
         }
 
         yield return new WaitForSeconds(.2f);
         SceneManager.UnloadSceneAsync("MultiplayerScene");
     }
 
+    [ServerRpc]
+    private void passLobbyCodeServerRpc(string newCode)
+    {
+        newLobbyCode = newCode;
+        passLobbyCodeClientRpc(newLobbyCode);
+    }
+    
+    
     [ClientRpc]
     private void passLobbyCodeClientRpc(string newCode)
     {

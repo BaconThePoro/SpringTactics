@@ -6,8 +6,7 @@ public class LobbyData : MonoBehaviour
 {
     public static LobbyData Instance { get; private set; }
     
-    private string p1Name;
-    private string p2Name; 
+    private string playerName;
     private LobbyManager.Map map = LobbyManager.Map.map1;
     private int startingSprings = 20;
     private int unitNumber = 2;
@@ -26,26 +25,16 @@ public class LobbyData : MonoBehaviour
         
     }
 
-    public string getP1Name()
+    public string getName()
     {
-        return p1Name;
+        return playerName;
     }
-    
-    public string getP2Name()
+
+    public void setName(string newName)
     {
-        return p2Name;
+        playerName = newName;
     }
-    
-    public void setP1Name(string newName)
-    {
-        p1Name = newName;
-    }
-    
-    public void setP2Name(string newName)
-    {
-        p2Name = newName;
-    }
-    
+
     public LobbyManager.Map getMap()
     {
         return map;
