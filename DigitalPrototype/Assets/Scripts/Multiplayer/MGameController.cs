@@ -1178,7 +1178,6 @@ public class MGameController : NetworkBehaviour
     {
         endTurnServerRpc(new ServerRpcParams());
     }
-
     
     [ServerRpc(RequireOwnership = false)]
     public void deselectTargetServerRpc(ServerRpcParams serverRpcParams)

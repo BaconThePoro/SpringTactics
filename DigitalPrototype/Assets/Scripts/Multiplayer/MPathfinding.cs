@@ -89,6 +89,7 @@ public class MPathfinding {
                 if (collisionGrid.HasTile(targetPos)
                     || gController.unitHere(targetPos))
                 {
+                    //Debug.Log("impassable");
                     pathNode.SetIsWalkable(false);
                 }
             }
