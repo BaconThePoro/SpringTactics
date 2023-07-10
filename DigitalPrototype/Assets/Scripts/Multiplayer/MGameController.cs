@@ -10,6 +10,7 @@ using Vector3 = UnityEngine.Vector3;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
+using Unity.VisualScripting;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
@@ -364,6 +365,7 @@ public class MGameController : NetworkBehaviour
         }
 
         clickLock = 3;
+        
     }
 
     public void turnOffGrids()
@@ -379,7 +381,6 @@ public class MGameController : NetworkBehaviour
     {
         //if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
            // return;
-        
         if (NetworkManager.Singleton.ConnectedClientsList.Count != 2)
             return;
 
@@ -390,11 +391,7 @@ public class MGameController : NetworkBehaviour
         pathfinding = new MPathfinding(17, 11, collisionMap);
         turnOffGrids();
         currGrid.gameObject.SetActive(true);
-        
-        // assign lobby spring amount
-        giveGearNum(LobbyData.Instance.getSprings(), false); ;
-        giveGearNum(LobbyData.Instance.getSprings(), true);
-        
+
         // create lobby character number
         for (int j = 0; j < (10 - LobbyData.Instance.getUnits()); j++)
         {
@@ -437,6 +434,19 @@ public class MGameController : NetworkBehaviour
 
             i += 1;
         }
+        
+        player2 = (int)NetworkManager.Singleton.ConnectedClientsIds[1];
+        // assign lobby spring amount
+        giveGearNum(LobbyData.Instance.getSprings(), false); ;
+        giveGearNum(LobbyData.Instance.getSprings(), true);
+        passGearNumberClientRpc(p1GearAmount, p2GearAmount);
+        
+        StartCoroutine(delayInitializeClient());
+    }
+
+    public IEnumerator delayInitializeClient()
+    {
+        yield return new WaitForSeconds(0.5f);
         InitializeGameClientRpc(LobbyData.Instance.getUnits(), (int)LobbyData.Instance.getMap());
         
         changeTurn(turnMode.Player1Turn);
@@ -455,7 +465,9 @@ public class MGameController : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
             return;
-        
+
+        player2 = (int)NetworkManager.Singleton.LocalClientId;
+
         // pick map
         currGrid = gridParent.transform.GetChild(mapNum).GetComponent<Grid>();
         overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
@@ -506,11 +518,13 @@ public class MGameController : NetworkBehaviour
 
             i += 1;
         }
+        
+        updateGearNumPanelClientRpc();
     }
 
     private IEnumerator delayInitialize()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
         InitializeGameServerRpc();
     }
     
