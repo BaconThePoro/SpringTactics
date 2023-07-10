@@ -103,6 +103,8 @@ public class LobbyManager : MonoBehaviour
     }
 
     private async void HandleLobbyPolling() {
+        //Debug.Log("polling lobby");
+        
         if (joinedLobby != null) {
             lobbyPollTimer -= Time.deltaTime;
             if (lobbyPollTimer < 0f) {
@@ -124,6 +126,7 @@ public class LobbyManager : MonoBehaviour
 
                 if (joinedLobby.Data[KEY_START_GAME].Value != "0")
                 {
+                    //Debug.Log("host started match");
                     // Start Game!
                     if (!IsLobbyHost())
                     {

@@ -3955,21 +3955,22 @@ public class MGameController : NetworkBehaviour
         // no lobby, create one
         if (newLobbyCode == null)
         {
+            LobbyManager.Instance.UpdatePlayerName("Host");
+            EditPlayerName.Instance.SetPlayerNameText("Host");
+            yield return new WaitForSeconds(.2f);
             LobbyManager.Instance.CreateLobby("newLobby", true, LobbyData.Instance.getMap(), 
                 LobbyData.Instance.getUnits(), LobbyData.Instance.getSprings());
             yield return new WaitForSeconds(.2f);
             newLobbyCode = LobbyManager.Instance.GetJoinedLobby().LobbyCode;
             passLobbyCodeServerRpc(newLobbyCode);
-            yield return new WaitForSeconds(.2f);
-            LobbyManager.Instance.UpdatePlayerName("Host");
-            EditPlayerName.Instance.SetPlayerNameText("Host");
+            NetworkManager.Singleton.Shutdown();
         }
         else
         {
-            LobbyManager.Instance.JoinLobbyByCode(newLobbyCode);
-            yield return new WaitForSeconds(.2f);
             LobbyManager.Instance.UpdatePlayerName("Client");
             EditPlayerName.Instance.SetPlayerNameText("Client");
+            yield return new WaitForSeconds(.2f);
+            LobbyManager.Instance.JoinLobbyByCode(newLobbyCode);
         }
 
         yield return new WaitForSeconds(.2f);

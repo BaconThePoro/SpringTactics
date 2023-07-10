@@ -13,8 +13,8 @@ public class NewLobby : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        networkManager = GameObject.Find("NetworkManager");
-        lobbyData = GameObject.Find("LobbyData");
+        networkManager = GameObject.Find("NetworkManager(Clone)");
+        lobbyData = GameObject.Find("LobbyData(Clone)");
 
         if (networkManager == null)
             Instantiate(networkPrefab);
