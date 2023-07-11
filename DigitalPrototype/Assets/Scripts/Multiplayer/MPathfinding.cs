@@ -10,12 +10,24 @@
     --------------------------------------------------
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using IngameDebugConsole;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using UnityEngine.Tilemaps;
+using Vector3 = UnityEngine.Vector3;
+using Unity.Netcode;
+using Unity.Services.Lobbies.Models;
+using Unity.Services.Relay;
+using Unity.VisualScripting;
+using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
-public class MPathfinding {
+public class MPathfinding : NetworkBehaviour{
 
     private const int MOVE_STRAIGHT_COST = 10;
     //private const int MOVE_DIAGONAL_COST = 99999;
@@ -42,6 +54,20 @@ public class MPathfinding {
 
     public void resetCollision()
     {
+        for (int i = 0; i < grid.GetWidth(); i++) 
+        {
+            for (int j = 0; j < grid.GetHeight(); j++)
+            {
+                PathNode currNode = grid.GetGridObject(i, j);
+                currNode.SetIsWalkable(true);
+            }
+        }
+    }
+    
+    [ClientRpc]
+    public void resetCollisionClientRpc()
+    {
+        //Debug.Log("Collision is Running Better Catch It");
         for (int i = 0; i < grid.GetWidth(); i++) 
         {
             for (int j = 0; j < grid.GetHeight(); j++)

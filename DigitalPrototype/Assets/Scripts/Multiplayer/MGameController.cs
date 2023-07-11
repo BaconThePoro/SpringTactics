@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using IngameDebugConsole;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -279,7 +280,6 @@ public class MGameController : NetworkBehaviour
         currGrid = GameObject.Find("Grid - Map1").gameObject.GetComponent<Grid>();
         overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
         collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
-        pathfinding = new MPathfinding(17, 11, collisionMap);
         moveAreaParent = GameObject.Find("moveAreas").gameObject;
         attackAreaParent = GameObject.Find("attackAreas").gameObject;
         turnModeTXT = GameObject.Find("currentTurnTXT").GetComponent<TMPro.TextMeshProUGUI>();
@@ -388,7 +388,6 @@ public class MGameController : NetworkBehaviour
         currGrid = gridParent.transform.GetChild((int)LobbyData.Instance.getMap()).GetComponent<Grid>();
         overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
         collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
-        pathfinding = new MPathfinding(17, 11, collisionMap);
         turnOffGrids();
         currGrid.gameObject.SetActive(true);
 
@@ -472,7 +471,6 @@ public class MGameController : NetworkBehaviour
         currGrid = gridParent.transform.GetChild(mapNum).GetComponent<Grid>();
         overlayMap = currGrid.transform.GetChild(2).GetComponent<Tilemap>();
         collisionMap = currGrid.transform.GetChild(1).GetComponent<Tilemap>();
-        pathfinding = new MPathfinding(17, 11, collisionMap);
         turnOffGrids();
         currGrid.gameObject.SetActive(true);
         
@@ -1220,6 +1218,7 @@ public class MGameController : NetworkBehaviour
 
             //p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
             moveActive = false;
+            passMoveActiveClientRpc(moveActive);
             attackActive = false;
             p2Targeted = null;
             p2TargetedStats = null;
@@ -1227,7 +1226,8 @@ public class MGameController : NetworkBehaviour
             //moveAreas[0].gameObject.SetActive(false);
             //moveAreas[1].gameObject.SetActive(false);
             //contextMenu.SetActive(false); // dont do on server
-            //overlayMap.ClearAllTiles();
+            overlayMap.ClearAllTiles();
+            ClearOverlayP2ClientRpc();
             p2DeselectClientRpc();
         }
     }
@@ -1256,6 +1256,7 @@ public class MGameController : NetworkBehaviour
     
         GameObject target = GameObject.Find(targetName);
         moveActive = false;
+        passMoveActiveClientRpc(moveActive);
         attackActive = false;
         if (target.GetComponent<Character>().getIsDead() == true)
             return;
@@ -1338,6 +1339,7 @@ public class MGameController : NetworkBehaviour
         p2TargetedStats = null;
         contextMenu.SetActive(false);
         overlayMap.ClearAllTiles(); // turn off movement highlighting
+        ClearOverlayP2ClientRpc();
         moveActive = false;
         attackActive = false;
         charInfoPanel.SetActive(false);
@@ -1657,7 +1659,7 @@ public class MGameController : NetworkBehaviour
             {
                 for (int j = -currMov; j <= currMov; j++)
                 {
-                    vectorPath = pathfinding.FindPath(currPos.x, currPos.y, 
+                    vectorPath = MPathfinding.Instance.FindPath(currPos.x, currPos.y, 
                         currPos.x + i, currPos.y + j, currMov);
                     // if path exists
                     if (vectorPath != null)
@@ -1676,6 +1678,7 @@ public class MGameController : NetworkBehaviour
                 return;
             
             moveActive = true;
+            passMoveActiveClientRpc(moveActive);
             attackActive = false;
             List<PathNode> vectorPath = new List<PathNode>();
             Vector3Int currPos = Vector3Int.FloorToInt(p2Targeted.transform.position);
@@ -1685,7 +1688,7 @@ public class MGameController : NetworkBehaviour
             {
                 for (int j = -currMov; j <= currMov; j++)
                 {
-                    vectorPath = pathfinding.FindPath(currPos.x, currPos.y, 
+                    vectorPath = MPathfinding.Instance.FindPath(currPos.x, currPos.y, 
                         currPos.x + i, currPos.y + j, currMov);
                     // if path exists
                     if (vectorPath != null)
@@ -3012,14 +3015,15 @@ public class MGameController : NetworkBehaviour
     {
         moveActive = cond;
     }
-    
+
     [ServerRpc(RequireOwnership = false)]
     public void validatePathServerRpc(Vector3Int mousePos, ServerRpcParams serverRpcParams)
     {
         if ((int)serverRpcParams.Receive.SenderClientId == player1 && currTurnMode == turnMode.Player1Turn)
         {
             List<PathNode> vectorPath = new List<PathNode>();
-            vectorPath = pathfinding.FindPath((int)p1Targeted.transform.position.x, (int)p1Targeted.transform.position.y,
+            vectorPath = MPathfinding.Instance.FindPath((int)p1Targeted.transform.position.x,
+                (int)p1Targeted.transform.position.y,
                 mousePos.x, mousePos.y, p1TargetedStats.movLeft);
 
             // valid moveable path
@@ -3028,7 +3032,7 @@ public class MGameController : NetworkBehaviour
                 clickLock = 1;
                 passClickLockClientRpc(1);
                 StartCoroutine(movePathServer(vectorPath, serverRpcParams));
-                pathfinding.resetCollision();
+                MPathfinding.Instance.resetCollision();
             }
             // invalid path 
             else
@@ -3037,24 +3041,28 @@ public class MGameController : NetworkBehaviour
             }
 
             // unhighlight moveTiles
-            clearOverlayClientRpc(false);
+            clearOverlayP1ClientRpc();
+            
             overlayMap.ClearAllTiles();
             moveActive = false;
         }
+
         if ((int)serverRpcParams.Receive.SenderClientId == player2 && currTurnMode == turnMode.Player2Turn)
         {
             List<PathNode> vectorPath = new List<PathNode>();
-            vectorPath = pathfinding.FindPath((int)p2Targeted.transform.position.x, (int)p2Targeted.transform.position.y,
+            vectorPath = MPathfinding.Instance.FindPath((int)p2Targeted.transform.position.x,
+                (int)p2Targeted.transform.position.y,
                 mousePos.x, mousePos.y, p2TargetedStats.movLeft);
 
             // valid moveable path
             if (vectorPath != null)
             {
-                clickLock = 2; 
+                clickLock = 2;
                 passClickLockClientRpc(2);
 
                 StartCoroutine(movePathServer(vectorPath, serverRpcParams));
-                pathfinding.resetCollision();
+                MPathfinding.Instance.resetCollision();
+                MPathfinding.Instance.resetCollisionClientRpc();
             }
             // invalid path 
             else
@@ -3064,11 +3072,12 @@ public class MGameController : NetworkBehaviour
 
             // unhighlight moveTiles
             overlayMap.ClearAllTiles();
-            clearOverlayClientRpc(true);
+            ClearOverlayP2ClientRpc();
             moveActive = false;
         }
     }
 
+  
     public mapFeatures checkOnCrate(Vector3 pos)
     {
         for (int i = 0; i < mapFeatures.transform.childCount; i++)
@@ -3138,6 +3147,7 @@ public class MGameController : NetworkBehaviour
         if ((int)serverRpcParams.Receive.SenderClientId == player2 && currTurnMode == turnMode.Player2Turn)
         {
             moveActive = false;
+            passMoveActiveClientRpc(moveActive);
             clickLock = 2; 
             passClickLockClientRpc(2);
 
@@ -3175,6 +3185,12 @@ public class MGameController : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void passMoveActiveClientRpc(bool kobe)
+    {
+        moveActive = kobe;
+    }
+
+    [ClientRpc]
     public void copyMoveClientRpc(string name, Vector3 newPosition)
     {
         GameObject targetUnit = GameObject.Find(name);
@@ -3183,28 +3199,31 @@ public class MGameController : NetworkBehaviour
 
     // player1 = false, player2 = true
     [ClientRpc]
-    public void clearOverlayClientRpc(bool Player)
+    public void clearOverlayP1ClientRpc()
     {
         // player 1
-        if (!Player)
-        {
+      
             // ignore if player 2
             if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
             {
                 return;
             }
-        }
-        // player 2
-        else
-        {
-            if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
-            {
-                return;
-            }
-        }
+            
         overlayMap.ClearAllTiles();
     }
+    
+    [ClientRpc]
+    public void ClearOverlayP2ClientRpc()
+    {
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+        {
+            return;
+        }
 
+        Debug.Log("ClearOverlayP2Client Called");
+        overlayMap.ClearAllTiles();
+    }
+    
     [ClientRpc]
     public void passTurnModeClientRpc(turnMode newTurnMode)
     {
