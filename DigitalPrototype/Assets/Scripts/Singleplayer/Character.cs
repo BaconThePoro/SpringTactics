@@ -50,7 +50,7 @@ public class Character : MonoBehaviour
     private int SPDMAX = 20;
     private int MOVMAX = 6;
 
-    public enum bodyType { Spring, Cog, Fisticuffs };
+    public enum bodyType { Knight, Merchant, Peasant, Priest, Soldier, Thief };
     private bodyType currBody = 0;
     public enum weaponType { Sword, Bow, AirTome, Axe, Spear, FireTome, LightningTome, IceTome, WaterTome };
     private weaponType currWeapon = 0;
@@ -167,7 +167,23 @@ public class Character : MonoBehaviour
 
     public void setBodyVisuals()
     {
+        //Debug.Log("childcount is " + transform.childCount);
+        if (transform.childCount > 1)
+        {
+            for (int i = 1; i < transform.childCount; i++)
+            {
+                Destroy(transform.GetChild(i).gameObject);
+            }
+        }
+            
+        
         GameObject bodyPrefab = bodySprites.transform.GetChild((int)currBody).gameObject;
+        Instantiate(bodyPrefab, transform);
+        
+        GameObject existingBody = transform.GetChild(1).gameObject;
+        existingBody.transform.localScale = bodyPrefab.transform.localScale;
+
+        /*GameObject bodyPrefab = bodySprites.transform.GetChild((int)currBody).gameObject;
         GetComponent<SpriteRenderer>().sprite = bodyPrefab.GetComponent<SpriteRenderer>().sprite;
 
         transform.localScale = bodyPrefab.transform.localScale;
@@ -184,19 +200,19 @@ public class Character : MonoBehaviour
         if (playerNum == 2)
         {
             GetComponent<SpriteRenderer>().color = Color.red;
-        }
-            
+        }*/
+
     }
 
     public void setWeaponVisuals()
     {
-        GameObject weapon = transform.GetChild(1).gameObject;
+        /*GameObject weapon = transform.GetChild(1).gameObject;
         GameObject weaponPrefab = weaponSprites.transform.GetChild((int)currWeapon).gameObject;
 
         // set weapon sprite based on currently equiped weapon
         weapon.GetComponent<SpriteRenderer>().sprite = weaponPrefab.GetComponent<SpriteRenderer>().sprite;
         weapon.transform.localScale = weaponPrefab.transform.localScale;
-        weapon.transform.localPosition = weaponPrefab.transform.localPosition;
+        weapon.transform.localPosition = weaponPrefab.transform.localPosition;*/
     }
 
     public void setWeaponStats()
@@ -375,7 +391,7 @@ public class Character : MonoBehaviour
     {
         canAttack = b;
 
-        // do this for allies only
+        /*// do this for allies only
         if (isEnemy == false)
         {
             SpriteRenderer sR = transform.GetComponent<SpriteRenderer>();
@@ -389,7 +405,7 @@ public class Character : MonoBehaviour
                 Color newColor = new Color(sR.color.r,sR.color.g,sR.color.b,0.5f);
                 sR.color = newColor;
             }
-        }
+        }*/
     }
 
     // Start is called before the first frame update

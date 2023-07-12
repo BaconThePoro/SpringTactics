@@ -1813,10 +1813,10 @@ public class MGameController : NetworkBehaviour
         
         Character charStats = character.GetComponent<Character>();
         charName.text = charStats.getCharName();
-        charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
+        //charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
         charImage.transform.localScale = character.transform.localScale;
 
-        weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
+        //weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
         weaponIMG.transform.localScale = charStats.transform.GetChild(1).localScale;
         charStats.updateCosts();
 
@@ -2309,10 +2309,10 @@ public class MGameController : NetworkBehaviour
         
         Character charStats = character.GetComponent<Character>();
         charName.text = charStats.getCharName();
-        charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
+        //charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
         charImage.transform.localScale = character.transform.localScale;
 
-        weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
+        //weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
         weaponIMG.transform.localScale = charStats.transform.GetChild(1).localScale;
         charStats.updateCosts();
 
@@ -3107,6 +3107,25 @@ public class MGameController : NetworkBehaviour
 
             for (int i = 1; i < vectorPath.Count; i++)
             {
+                float xDiff = vectorPath[i].x - p1Targeted.transform.position.x;
+                float yDiff = vectorPath[i].y - p1Targeted.transform.position.y;
+
+                if (xDiff < 0)
+                {
+                    // face left
+                    p1Targeted.transform.rotation = new Quaternion(0f, 0f, 0f, 0f);
+                    p1Targeted.transform.localScale = new Vector3(1f, 1f, 1f);
+                }
+
+                if (xDiff > 0)
+                {
+                    // face right
+                    p1Targeted.transform.rotation = new Quaternion(0f, 180f, 0f, 0f);
+                    p1Targeted.transform.localScale = new Vector3(1f, 1f, -1f);
+                }
+
+                copyRotClientRpc(p1Targeted.name, p1Targeted.transform.rotation);
+                copyScaleClientRpc(p1Targeted.name, p1Targeted.transform.localScale);
                 p1Targeted.transform.position = new Vector3(vectorPath[i].x, vectorPath[i].y, 0);
                 copyMoveClientRpc(p1Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
                 p1TargetedStats.movLeft--;
@@ -3130,7 +3149,6 @@ public class MGameController : NetworkBehaviour
             changeMode(gameMode.MapMode);
             clickLock = 0;
             passClickLockClientRpc(0);
-
             moveActiveServerRpc(false);
             P1openContextMenuClientRpc(p1Targeted.transform.position);
         }
@@ -3146,6 +3164,25 @@ public class MGameController : NetworkBehaviour
 
             for (int i = 1; i < vectorPath.Count; i++)
             {
+                float xDiff = vectorPath[i].x - p2Targeted.transform.position.x;
+                float yDiff = vectorPath[i].y - p2Targeted.transform.position.y;
+
+                if (xDiff < 0)
+                {
+                    // face left
+                    p2Targeted.transform.rotation = new Quaternion(0f, 0f, 0f, 0f);
+                    p2Targeted.transform.localScale = new Vector3(1f, 1f, 1f);
+                }
+
+                if (xDiff > 0)
+                {
+                    // face right
+                    p2Targeted.transform.rotation = new Quaternion(0f, 180f, 0f, 0f);
+                    p2Targeted.transform.localScale = new Vector3(1f, 1f, -1f);
+                }
+                
+                copyRotClientRpc(p2Targeted.name, p2Targeted.transform.rotation);
+                copyScaleClientRpc(p2Targeted.name, p2Targeted.transform.localScale);
                 p2Targeted.transform.position = new Vector3(vectorPath[i].x, vectorPath[i].y, 0);
                 copyMoveClientRpc(p2Targeted.name, new Vector3(vectorPath[i].x, vectorPath[i].y, 0));
                 p2TargetedStats.movLeft--;
@@ -3179,6 +3216,20 @@ public class MGameController : NetworkBehaviour
     {
         GameObject targetUnit = GameObject.Find(name);
         targetUnit.transform.position = newPosition;
+    }
+    
+    [ClientRpc]
+    public void copyRotClientRpc(string name, Quaternion newRotation)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        targetUnit.transform.rotation = newRotation;
+    }
+    
+    [ClientRpc]
+    public void copyScaleClientRpc(string name, Vector3 newScale)
+    {
+        GameObject targetUnit = GameObject.Find(name);
+        targetUnit.transform.localScale = newScale;
     }
 
     // player1 = false, player2 = true
