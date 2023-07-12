@@ -1815,9 +1815,7 @@ public class MGameController : NetworkBehaviour
         charName.text = charStats.getCharName();
         //charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
         charImage.transform.localScale = character.transform.localScale;
-
-        //weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
-        weaponIMG.transform.localScale = charStats.transform.GetChild(1).localScale;
+        
         charStats.updateCosts();
 
         if (bodyDropdown.options.Count == 0)
@@ -1846,6 +1844,9 @@ public class MGameController : NetworkBehaviour
         {
             weaponDropdown.value = (int)charStats.GetWeaponType();
         }
+        
+        weaponIMG.sprite = character.transform.GetComponentInChildren<DummyMainHand>().GetComponent<SpriteRenderer>().sprite;
+        weaponIMG.transform.localScale = charStats.transform.localScale;
 
         hpNUM.text = "" + charStats.baseHP;
         strNUM.text = "" + charStats.baseSTR;
@@ -2212,12 +2213,16 @@ public class MGameController : NetworkBehaviour
          if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
          {
              if (p1Targeted != null)
-                changedBodyServerRpc(d.value, p1Targeted.name);
+             {
+                 changedBodyServerRpc(d.value, p1Targeted.name);
+             }
          }
          else if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
          {
              if (p2Targeted != null)
-                changedBodyServerRpc(d.value, p2Targeted.name);
+             {
+                 changedBodyServerRpc(d.value, p2Targeted.name);
+             }
          }
      }
      
@@ -2237,6 +2242,7 @@ public class MGameController : NetworkBehaviour
          unitStats.changeBody((Character.bodyType)val);
          changedBodyClientRpc(val, unit.name);
          updateUpgradeMenuServerRpc(unit.name);
+         
      }
 
      [ClientRpc]
@@ -2312,7 +2318,7 @@ public class MGameController : NetworkBehaviour
         //charImage.sprite = character.GetComponent<SpriteRenderer>().sprite;
         charImage.transform.localScale = character.transform.localScale;
 
-        //weaponIMG.sprite = character.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite;
+        weaponIMG.sprite = character.transform.GetComponentInChildren<DummyMainHand>().GetComponent<SpriteRenderer>().sprite;
         weaponIMG.transform.localScale = charStats.transform.GetChild(1).localScale;
         charStats.updateCosts();
 

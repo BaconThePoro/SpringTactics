@@ -59,6 +59,7 @@ public class Character : MonoBehaviour
     private float attackRange;
     private GameObject weaponSprites = null;
     private GameObject bodySprites = null;
+    private GameObject weapon = null;
 
     public string getCharName()
     {
@@ -182,7 +183,9 @@ public class Character : MonoBehaviour
         
         GameObject existingBody = transform.GetChild(1).gameObject;
         existingBody.transform.localScale = bodyPrefab.transform.localScale;
-
+        
+        setWeaponVisuals();
+        
         /*GameObject bodyPrefab = bodySprites.transform.GetChild((int)currBody).gameObject;
         GetComponent<SpriteRenderer>().sprite = bodyPrefab.GetComponent<SpriteRenderer>().sprite;
 
@@ -206,13 +209,14 @@ public class Character : MonoBehaviour
 
     public void setWeaponVisuals()
     {
-        /*GameObject weapon = transform.GetChild(1).gameObject;
+        weapon = transform.GetComponentInChildren<DummyMainHand>().gameObject;
         GameObject weaponPrefab = weaponSprites.transform.GetChild((int)currWeapon).gameObject;
 
         // set weapon sprite based on currently equiped weapon
         weapon.GetComponent<SpriteRenderer>().sprite = weaponPrefab.GetComponent<SpriteRenderer>().sprite;
         weapon.transform.localScale = weaponPrefab.transform.localScale;
-        weapon.transform.localPosition = weaponPrefab.transform.localPosition;*/
+        weapon.transform.localPosition = weaponPrefab.transform.localPosition;
+        weapon.transform.rotation = weaponPrefab.transform.rotation;
     }
 
     public void setWeaponStats()
@@ -420,9 +424,9 @@ public class Character : MonoBehaviour
         resetHP();
         resetMove();
         setAttack(true);
+        setBodyVisuals();
         setWeaponStats();
         setWeaponVisuals();
-        setBodyVisuals();
         updateCosts();
     }
 
