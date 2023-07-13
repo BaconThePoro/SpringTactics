@@ -200,6 +200,19 @@ public class MGameController : NetworkBehaviour
     private string newLobbyCode;
     private int clientsConnected = 0; // counts how many connected
     
+    // Camera movement stuff
+    // world limit is limit camera should be movable
+    private float worldLimPlusX = 32f;
+    private float worldLimPlusY = 25f;
+    private float worldLimMinusX = -5f;
+    private float worldLimMinusY = -5f;
+    float camMoveAmount = 0.1f;
+    float targetZoom;
+    float sensitivity = 1;
+    float camSpeed = 3;
+    float maxZoom = 11;
+    float minZoom = 2;
+    
     void Start()
     {
         //Getting all context menu buttons
@@ -365,7 +378,7 @@ public class MGameController : NetworkBehaviour
         }
 
         clickLock = 3;
-        
+        float targetZoom = mainCamera.orthographicSize;
     }
 
     public void turnOffGrids()
@@ -534,7 +547,37 @@ public class MGameController : NetworkBehaviour
             StartCoroutine(delayInitialize());
         }
         
-        
+        // Map mode only
+        if (currGameMode == gameMode.MapMode)
+        {
+            // camera move up
+            if (Input.GetKey(KeyCode.W) && mainCamera.transform.position.y < worldLimPlusY)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y + camMoveAmount, mainCamera.transform.position.z);
+            }
+            // camera move down
+            if (Input.GetKey(KeyCode.S) && mainCamera.transform.position.y > worldLimMinusY)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y - camMoveAmount, mainCamera.transform.position.z);
+            }
+            // camera move left
+            if (Input.GetKey(KeyCode.A) && mainCamera.transform.position.x > worldLimMinusX)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x - camMoveAmount, mainCamera.transform.position.y, mainCamera.transform.position.z);
+            }
+            // camera move right
+            if (Input.GetKey(KeyCode.D) && mainCamera.transform.position.x < worldLimPlusX)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x + camMoveAmount, mainCamera.transform.position.y, mainCamera.transform.position.z);
+            }
+            
+            targetZoom -= Input.mouseScrollDelta.y * sensitivity;
+            targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
+            float newSize = Mathf.MoveTowards(mainCamera.orthographicSize, targetZoom, camSpeed * Time.deltaTime);
+            mainCamera.orthographicSize = newSize;
+        }
+
+
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             if (NetworkManager.Singleton.LocalClientId == (ulong)player1 && (clickLock == 1 || clickLock == 3))
@@ -3157,6 +3200,7 @@ public class MGameController : NetworkBehaviour
                     // face right
                     p1Targeted.transform.rotation = new Quaternion(0f, 180f, 0f, 0f);
                     p1Targeted.transform.localScale = new Vector3(1f, 1f, -1f);
+                    
                 }
 
                 copyRotClientRpc(p1Targeted.name, p1Targeted.transform.rotation);
