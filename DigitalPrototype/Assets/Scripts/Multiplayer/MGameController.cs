@@ -236,40 +236,40 @@ public class MGameController : NetworkBehaviour
         ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
 
         //upgrade menu stuff
-        charName = upgradeMenu.transform.GetChild(1).transform.GetChild(3).GetComponent<TMPro.TMP_InputField>();
-        charImage = upgradeMenu.transform.GetChild(1).transform.GetChild(6).GetComponent<Image>();
-        bodyDropdown = upgradeMenu.transform.GetChild(1).transform.GetChild(8).GetComponent<Dropdown>();
-        weaponDropdown = upgradeMenu.transform.GetChild(1).transform.GetChild(10).GetComponent<Dropdown>();
-        hpNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(18).GetComponent<TMPro.TextMeshProUGUI>();
-        strNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(19).GetComponent<TMPro.TextMeshProUGUI>();
-        magNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(20).GetComponent<TMPro.TextMeshProUGUI>();
-        spdNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(21).GetComponent<TMPro.TextMeshProUGUI>();
-        defNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(22).GetComponent<TMPro.TextMeshProUGUI>();
-        resNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();
-        movNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(24).GetComponent<TMPro.TextMeshProUGUI>();
-        hpMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(25).GetComponent<TMPro.TextMeshProUGUI>();
-        strMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(26).GetComponent<TMPro.TextMeshProUGUI>();
-        magMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(27).GetComponent<TMPro.TextMeshProUGUI>();
-        spdMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(28).GetComponent<TMPro.TextMeshProUGUI>();
-        defMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(29).GetComponent<TMPro.TextMeshProUGUI>();
-        resMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(30).GetComponent<TMPro.TextMeshProUGUI>();
-        movMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(31).GetComponent<TMPro.TextMeshProUGUI>();
-        hpCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(34).GetComponent<TMPro.TextMeshProUGUI>();
-        strCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>();
-        magCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(38).GetComponent<TMPro.TextMeshProUGUI>();
-        defCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(40).GetComponent<TMPro.TextMeshProUGUI>();
-        resCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(42).GetComponent<TMPro.TextMeshProUGUI>();
-        spdCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(44).GetComponent<TMPro.TextMeshProUGUI>();
-        movCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(46).GetComponent<TMPro.TextMeshProUGUI>();
-        weaponIMG = upgradeMenu.transform.GetChild(1).transform.GetChild(47).GetComponent<Image>();
-        hpButton = upgradeMenu.transform.GetChild(1).transform.GetChild(32).GetComponent<Button>();
-        strButton = upgradeMenu.transform.GetChild(1).transform.GetChild(35).GetComponent<Button>();
-        magButton = upgradeMenu.transform.GetChild(1).transform.GetChild(37).GetComponent<Button>();
-        defButton = upgradeMenu.transform.GetChild(1).transform.GetChild(39).GetComponent<Button>();
-        resButton = upgradeMenu.transform.GetChild(1).transform.GetChild(41).GetComponent<Button>();
-        spdButton = upgradeMenu.transform.GetChild(1).transform.GetChild(43).GetComponent<Button>();
-        movButton = upgradeMenu.transform.GetChild(1).transform.GetChild(45).GetComponent<Button>();
-        weaponStatsPanel = upgradeMenu.transform.GetChild(1).transform.GetChild(48).gameObject;
+        charName = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(3).GetComponent<TMPro.TMP_InputField>();
+        charImage = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(6).GetComponent<Image>();
+        bodyDropdown = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(8).GetComponent<Dropdown>();
+        weaponDropdown = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(10).GetComponent<Dropdown>();
+        hpNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(18).GetComponent<TMPro.TextMeshProUGUI>();
+        strNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(19).GetComponent<TMPro.TextMeshProUGUI>();
+        magNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(20).GetComponent<TMPro.TextMeshProUGUI>();
+        spdNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(21).GetComponent<TMPro.TextMeshProUGUI>();
+        defNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(22).GetComponent<TMPro.TextMeshProUGUI>();
+        resNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();
+        movNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(24).GetComponent<TMPro.TextMeshProUGUI>();
+        hpMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(25).GetComponent<TMPro.TextMeshProUGUI>();
+        strMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(26).GetComponent<TMPro.TextMeshProUGUI>();
+        magMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(27).GetComponent<TMPro.TextMeshProUGUI>();
+        spdMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(28).GetComponent<TMPro.TextMeshProUGUI>();
+        defMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(29).GetComponent<TMPro.TextMeshProUGUI>();
+        resMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(30).GetComponent<TMPro.TextMeshProUGUI>();
+        movMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(31).GetComponent<TMPro.TextMeshProUGUI>();
+        hpCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(34).GetComponent<TMPro.TextMeshProUGUI>();
+        strCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>();
+        magCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(38).GetComponent<TMPro.TextMeshProUGUI>();
+        defCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(40).GetComponent<TMPro.TextMeshProUGUI>();
+        resCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(42).GetComponent<TMPro.TextMeshProUGUI>();
+        spdCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(44).GetComponent<TMPro.TextMeshProUGUI>();
+        movCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(46).GetComponent<TMPro.TextMeshProUGUI>();
+        weaponIMG = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(47).GetComponent<Image>();
+        hpButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(32).GetComponent<Button>();
+        strButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(35).GetComponent<Button>();
+        magButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(37).GetComponent<Button>();
+        defButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(39).GetComponent<Button>();
+        resButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(41).GetComponent<Button>();
+        spdButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(43).GetComponent<Button>();
+        movButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(45).GetComponent<Button>();
+        weaponStatsPanel = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(48).gameObject;
         weaponStats1 = weaponStatsPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>();
         weaponStats2 = weaponStatsPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
         weaponRange = weaponStatsPanel.transform.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>();
@@ -1768,6 +1768,10 @@ public class MGameController : NetworkBehaviour
             return;
         if (upgradeMenu.activeSelf == true)
         {
+            charInfoPanel.gameObject.SetActive(true);
+            p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
+            mainCamera.transform.position = savedPosCam;
+            mainCamera.orthographicSize = savedCamSize;
                
             changeMode(gameMode.MapMode);
             upgradeMenu.gameObject.SetActive(false);
@@ -1790,6 +1794,10 @@ public class MGameController : NetworkBehaviour
             return;
         if (upgradeMenu.activeSelf == true)
         {
+            charInfoPanel.gameObject.SetActive(true);
+            p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
+            mainCamera.transform.position = savedPosCam;
+            mainCamera.orthographicSize = savedCamSize;
                
             changeMode(gameMode.MapMode);
             upgradeMenu.gameObject.SetActive(false);
@@ -2290,6 +2298,14 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        
+        charInfoPanel.gameObject.SetActive(false);
+        p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
+        savedCamSize = mainCamera.orthographicSize;
+        savedPosCam = mainCamera.transform.position;
+        mainCamera.orthographicSize = 2f;
+        mainCamera.transform.position = new Vector3(p1Targeted.transform.position.x + 0.75f, p1Targeted.transform.position.y - 0.85f, -3);
+        
         contextMenu.SetActive(false);
         upgradeMenu.gameObject.SetActive(true);
         updateUpgradeMenuServerRpc(p1Targeted.name);
@@ -2967,6 +2983,14 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        
+        charInfoPanel.gameObject.SetActive(false);
+        p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
+        savedCamSize = mainCamera.orthographicSize;
+        savedPosCam = mainCamera.transform.position;
+        mainCamera.orthographicSize = 2f;
+        mainCamera.transform.position = new Vector3(p2Targeted.transform.position.x + 0.75f, p2Targeted.transform.position.y - 0.85f, -3);
+        
         contextMenu.SetActive(false);
         upgradeMenu.gameObject.SetActive(true);
         updateUpgradeMenuServerRpc(p2Targeted.name);
