@@ -313,10 +313,10 @@ public class MGameController : NetworkBehaviour
             p1Units[i] = child.gameObject;
             p1Stats[i] = p1Units[i].GetComponent<Character>();
             p1Units[i].transform.position = p1StartPos[i];
-            p1Stats[i].changeBody(p1bodysList[i]);
-            p1Stats[i].changeWeapon(p1weaponsList[i]);
+            //p1Stats[i].changeBody(p1bodysList[i]);
+            //p1Stats[i].changeWeapon(p1weaponsList[i]);
             p1Stats[i].playerNum = 1;
-            p1Stats[i].setBodyVisuals();
+            //p1Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -327,10 +327,10 @@ public class MGameController : NetworkBehaviour
             p2Units[i] = child.gameObject;
             p2Stats[i] = p2Units[i].GetComponent<Character>();
             p2Units[i].transform.position = p2StartPos[i];
-            p2Stats[i].changeBody(p2bodysList[i]);
-            p2Stats[i].changeWeapon(p2weaponsList[i]);
+            //p2Stats[i].changeBody(p2bodysList[i]);
+            //p2Stats[i].changeWeapon(p2weaponsList[i]);
             p2Stats[i].playerNum = 2;
-            p2Stats[i].setBodyVisuals();
+            //p2Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -379,8 +379,8 @@ public class MGameController : NetworkBehaviour
     [ServerRpc]
     public void InitializeGameServerRpc()
     {
-        //if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
-           // return;
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+            return;
         if (NetworkManager.Singleton.ConnectedClientsList.Count != 2)
             return;
 
@@ -400,7 +400,7 @@ public class MGameController : NetworkBehaviour
             Destroy(p1Units[9 - j]);
             Destroy(p2Units[9 - j]);
         }
-
+        
         // reinitialize p1
         p1Units = new GameObject[p1.transform.childCount];
         p1Stats = new Character[p1.transform.childCount];
@@ -410,10 +410,10 @@ public class MGameController : NetworkBehaviour
             p1Units[i] = child.gameObject;
             p1Stats[i] = p1Units[i].GetComponent<Character>();
             p1Units[i].transform.position = p1StartPos[i];
-            p1Stats[i].changeBody(p1bodysList[i]);
-            p1Stats[i].changeWeapon(p1weaponsList[i]);
+            //p1Stats[i].changeBody(p1bodysList[i]);
+            //p1Stats[i].changeWeapon(p1weaponsList[i]);
             p1Stats[i].playerNum = 1;
-            p1Stats[i].setBodyVisuals();
+            //p1Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -427,14 +427,14 @@ public class MGameController : NetworkBehaviour
             p2Units[i] = child.gameObject;
             p2Stats[i] = p2Units[i].GetComponent<Character>();
             p2Units[i].transform.position = p2StartPos[i];
-            p2Stats[i].changeBody(p2bodysList[i]);
-            p2Stats[i].changeWeapon(p2weaponsList[i]);
+            //p2Stats[i].changeBody(p2bodysList[i]);
+            //p2Stats[i].changeWeapon(p2weaponsList[i]);
             p2Stats[i].playerNum = 2;
-            p2Stats[i].setBodyVisuals();
+            //p2Stats[i].setBodyVisuals();
 
             i += 1;
         }
-        
+
         player2 = (int)NetworkManager.Singleton.ConnectedClientsIds[1];
         // assign lobby spring amount
         giveGearNum(LobbyData.Instance.getSprings(), false); ;
@@ -463,7 +463,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     private void InitializeGameClientRpc(int unitNum, int mapNum)
     {
-        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+        if (NetworkManager.Singleton.IsHost)
             return;
 
         player2 = (int)NetworkManager.Singleton.LocalClientId;
@@ -497,7 +497,6 @@ public class MGameController : NetworkBehaviour
             p1Stats[i].changeBody(p1bodysList[i]);
             p1Stats[i].changeWeapon(p1weaponsList[i]);
             p1Stats[i].playerNum = 1;
-            p1Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -514,7 +513,6 @@ public class MGameController : NetworkBehaviour
             p2Stats[i].changeBody(p2bodysList[i]);
             p2Stats[i].changeWeapon(p2weaponsList[i]);
             p2Stats[i].playerNum = 2;
-            p2Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -2231,7 +2229,15 @@ public class MGameController : NetworkBehaviour
      {
          GameObject unit = GameObject.Find(name);
          unit.GetComponent<Character>().changeBody((Character.bodyType)val);
+         StartCoroutine(delayUpdateWeapon(name));
          updateUpgradeMenuServerRpc(unit.name);
+     }
+
+     public IEnumerator delayUpdateWeapon(string name)
+     {
+         yield return new WaitForSeconds(0.01f);
+         GameObject unit = GameObject.Find(name);
+         unit.GetComponent<Character>().setWeaponVisuals();
      }
      
      [ServerRpc(RequireOwnership = false)]
@@ -2239,10 +2245,9 @@ public class MGameController : NetworkBehaviour
      {
          GameObject unit = GameObject.Find(name);
          Character unitStats = unit.GetComponent<Character>();
-         unitStats.changeBody((Character.bodyType)val);
+         //unitStats.changeBody((Character.bodyType)val);
          changedBodyClientRpc(val, unit.name);
          updateUpgradeMenuServerRpc(unit.name);
-         
      }
 
      [ClientRpc]
@@ -2258,7 +2263,7 @@ public class MGameController : NetworkBehaviour
      {
          GameObject unit = GameObject.Find(name);
          Character unitStats = unit.GetComponent<Character>();
-         unitStats.changeWeapon((Character.weaponType)val);
+         //unitStats.changeWeapon((Character.weaponType)val);
          changedWeaponClientRpc(val, unit.name);
          updateUpgradeMenuServerRpc(unit.name);
      }
