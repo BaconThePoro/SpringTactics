@@ -120,7 +120,11 @@ MonoBehaviour:
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
 <<<<<<< HEAD
+<<<<<<< HEAD
   controlID: 125
+=======
+  controlID: 100
+>>>>>>> parent of 8adb7cb (animation start)
 =======
   controlID: 100
 >>>>>>> parent of 8adb7cb (animation start)
@@ -149,7 +153,11 @@ MonoBehaviour:
   m_MaxSize: {x: 16192, y: 16192}
   vertical: 1
 <<<<<<< HEAD
+<<<<<<< HEAD
   controlID: 44
+=======
+  controlID: 40
+>>>>>>> parent of 8adb7cb (animation start)
 =======
   controlID: 40
 >>>>>>> parent of 8adb7cb (animation start)
@@ -178,7 +186,11 @@ MonoBehaviour:
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
 <<<<<<< HEAD
+<<<<<<< HEAD
   controlID: 45
+=======
+  controlID: 41
+>>>>>>> parent of 8adb7cb (animation start)
 =======
   controlID: 41
 >>>>>>> parent of 8adb7cb (animation start)
@@ -230,6 +242,7 @@ MonoBehaviour:
   m_MinSize: {x: 202, y: 221}
   m_MaxSize: {x: 4002, y: 4021}
 <<<<<<< HEAD
+<<<<<<< HEAD
   m_ActualView: {fileID: 15}
 =======
   m_ActualView: {fileID: 12}
@@ -241,6 +254,15 @@ MonoBehaviour:
   m_Selected: 0
   m_LastSelected: 1
 =======
+  - {fileID: 15}
+  m_Selected: 1
+  m_LastSelected: 0
+>>>>>>> parent of 8adb7cb (animation start)
+=======
+  m_ActualView: {fileID: 12}
+  m_Panes:
+  - {fileID: 14}
+  - {fileID: 12}
   - {fileID: 15}
   m_Selected: 1
   m_LastSelected: 0
@@ -272,6 +294,7 @@ MonoBehaviour:
   m_MinSize: {x: 231, y: 271}
   m_MaxSize: {x: 10001, y: 10021}
   m_ActualView: {fileID: 16}
+<<<<<<< HEAD
 >>>>>>> parent of 8adb7cb (animation start)
   m_Panes:
   - {fileID: 16}
@@ -281,6 +304,11 @@ MonoBehaviour:
   m_Selected: 1
   m_LastSelected: 0
 =======
+=======
+  m_Panes:
+  - {fileID: 16}
+  - {fileID: 17}
+>>>>>>> parent of 8adb7cb (animation start)
   m_Selected: 0
   m_LastSelected: 1
 >>>>>>> parent of 8adb7cb (animation start)
@@ -318,6 +346,7 @@ MonoBehaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
+<<<<<<< HEAD
 <<<<<<< HEAD
   m_EditorHideFlags: 0
   m_Script: {fileID: 12914, guid: 0000000000000000e000000000000000, type: 0}
@@ -406,6 +435,8 @@ MonoBehaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
+=======
+>>>>>>> parent of 8adb7cb (animation start)
 =======
 >>>>>>> parent of 8adb7cb (animation start)
   m_EditorHideFlags: 1
@@ -536,9 +567,15 @@ MonoBehaviour:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
 <<<<<<< HEAD
+<<<<<<< HEAD
       m_SelectedIDs: 
       m_LastClickedID: 0
       m_ExpandedIDs: 28b8ffffccc2ffff10c3ffff06c7ffff08c8ffffc4d3ffff3ce3ffffa0e4fffff4e7fffff4ecffff30edffff28f1ffff2ef2ffffbafaffffbcfaffffc0faffff0efbfffff4ffffff1e730000
+=======
+      m_SelectedIDs: b8590000
+      m_LastClickedID: 0
+      m_ExpandedIDs: 0efbffff
+>>>>>>> parent of 8adb7cb (animation start)
 =======
       m_SelectedIDs: b8590000
       m_LastClickedID: 0
@@ -950,9 +987,15 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_Position:
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_Target: {x: 0.35369098, y: 0.9050883, z: -4.8643293}
     speed: 2
     m_Value: {x: 0.35369098, y: 0.9050883, z: -4.8643293}
+=======
+    m_Target: {x: 1.0342096, y: 2.2959716, z: 0.74184114}
+    speed: 2
+    m_Value: {x: 1.0342096, y: 2.2959716, z: 0.74184114}
+>>>>>>> parent of 8adb7cb (animation start)
 =======
     m_Target: {x: 1.0342096, y: 2.2959716, z: 0.74184114}
     speed: 2
@@ -1008,9 +1051,15 @@ MonoBehaviour:
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_Target: 4.4362173
     speed: 2
     m_Value: 4.4362173
+=======
+    m_Target: 2.5727
+    speed: 2
+    m_Value: 2.5727
+>>>>>>> parent of 8adb7cb (animation start)
 =======
     m_Target: 2.5727
     speed: 2
@@ -1147,15 +1196,21 @@ MonoBehaviour:
     m_IsLocked: 0
   m_FolderTreeState:
 <<<<<<< HEAD
+<<<<<<< HEAD
     scrollPos: {x: 0, y: 59}
     m_SelectedIDs: 58ed0000
     m_LastClickedID: 60760
     m_ExpandedIDs: 00000000b0830000ba830000c683000000ca9a3bffffff7f
 =======
+=======
+>>>>>>> parent of 8adb7cb (animation start)
     scrollPos: {x: 0, y: 69}
     m_SelectedIDs: e2730000
     m_LastClickedID: 29666
     m_ExpandedIDs: 00000000587300006473000000ca9a3bffffff7f
+<<<<<<< HEAD
+>>>>>>> parent of 8adb7cb (animation start)
+=======
 >>>>>>> parent of 8adb7cb (animation start)
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -1185,7 +1240,11 @@ MonoBehaviour:
     m_SelectedIDs: 
     m_LastClickedID: 0
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_ExpandedIDs: 00000000b0830000
+=======
+    m_ExpandedIDs: 0000000058730000
+>>>>>>> parent of 8adb7cb (animation start)
 =======
     m_ExpandedIDs: 0000000058730000
 >>>>>>> parent of 8adb7cb (animation start)
