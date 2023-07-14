@@ -36,7 +36,6 @@ public class LobbyUI : MonoBehaviour {
         startGameButton.onClick.AddListener(() =>
         {
             LobbyManager.Instance.StartGame();
-            startGameButton.enabled = false;
         });
         
         startGameButton.gameObject.SetActive(false);

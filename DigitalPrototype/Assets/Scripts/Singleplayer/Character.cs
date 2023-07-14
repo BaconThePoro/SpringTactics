@@ -171,7 +171,10 @@ public class Character : MonoBehaviour
         //Debug.Log("childcount is " + transform.childCount);
         if (transform.childCount > 1)
         {
-            Destroy(transform.GetChild(1).gameObject);
+            for (int i = 1; i < transform.childCount; i++)
+            {
+                Destroy(transform.GetChild(i).gameObject);
+            }
         }
             
         
@@ -180,7 +183,9 @@ public class Character : MonoBehaviour
         
         GameObject existingBody = transform.GetChild(1).gameObject;
         existingBody.transform.localScale = bodyPrefab.transform.localScale;
-
+        
+        setWeaponVisuals();
+        
         /*GameObject bodyPrefab = bodySprites.transform.GetChild((int)currBody).gameObject;
         GetComponent<SpriteRenderer>().sprite = bodyPrefab.GetComponent<SpriteRenderer>().sprite;
 
@@ -204,7 +209,7 @@ public class Character : MonoBehaviour
 
     public void setWeaponVisuals()
     {
-        weapon = transform.GetChild(1).GetComponent<Weapon>().getWeapon();
+        weapon = transform.GetComponentInChildren<DummyMainHand>().gameObject;
         GameObject weaponPrefab = weaponSprites.transform.GetChild((int)currWeapon).gameObject;
 
         // set weapon sprite based on currently equiped weapon
@@ -212,8 +217,6 @@ public class Character : MonoBehaviour
         weapon.transform.localScale = weaponPrefab.transform.localScale;
         weapon.transform.localPosition = weaponPrefab.transform.localPosition;
         weapon.transform.rotation = weaponPrefab.transform.rotation;
-        
-        Debug.Log("set weapon visuals to " + currWeapon + " for " + charName);
     }
 
     public void setWeaponStats()
