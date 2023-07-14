@@ -201,6 +201,19 @@ public class MGameController : NetworkBehaviour
     private string newLobbyCode;
     private int clientsConnected = 0; // counts how many connected
     
+    // Camera movement stuff
+    // world limit is limit camera should be movable
+    private float worldLimPlusX = 32f;
+    private float worldLimPlusY = 25f;
+    private float worldLimMinusX = -5f;
+    private float worldLimMinusY = -5f;
+    float camMoveAmount = 0.1f;
+    float targetZoom;
+    float sensitivity = 1;
+    float camSpeed = 3;
+    float maxZoom = 11;
+    float minZoom = 2;
+    
     void Start()
     {
         //Getting all context menu buttons
@@ -237,40 +250,40 @@ public class MGameController : NetworkBehaviour
         ///RmovLeftNUM = movLeftNUMObj.GetComponent<TMPro.TextMeshProUGUI>();
 
         //upgrade menu stuff
-        charName = upgradeMenu.transform.GetChild(1).transform.GetChild(3).GetComponent<TMPro.TMP_InputField>();
-        charImage = upgradeMenu.transform.GetChild(1).transform.GetChild(6).GetComponent<Image>();
-        bodyDropdown = upgradeMenu.transform.GetChild(1).transform.GetChild(8).GetComponent<Dropdown>();
-        weaponDropdown = upgradeMenu.transform.GetChild(1).transform.GetChild(10).GetComponent<Dropdown>();
-        hpNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(18).GetComponent<TMPro.TextMeshProUGUI>();
-        strNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(19).GetComponent<TMPro.TextMeshProUGUI>();
-        magNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(20).GetComponent<TMPro.TextMeshProUGUI>();
-        spdNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(21).GetComponent<TMPro.TextMeshProUGUI>();
-        defNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(22).GetComponent<TMPro.TextMeshProUGUI>();
-        resNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();
-        movNUM = upgradeMenu.transform.GetChild(1).transform.GetChild(24).GetComponent<TMPro.TextMeshProUGUI>();
-        hpMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(25).GetComponent<TMPro.TextMeshProUGUI>();
-        strMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(26).GetComponent<TMPro.TextMeshProUGUI>();
-        magMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(27).GetComponent<TMPro.TextMeshProUGUI>();
-        spdMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(28).GetComponent<TMPro.TextMeshProUGUI>();
-        defMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(29).GetComponent<TMPro.TextMeshProUGUI>();
-        resMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(30).GetComponent<TMPro.TextMeshProUGUI>();
-        movMOD = upgradeMenu.transform.GetChild(1).transform.GetChild(31).GetComponent<TMPro.TextMeshProUGUI>();
-        hpCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(34).GetComponent<TMPro.TextMeshProUGUI>();
-        strCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>();
-        magCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(38).GetComponent<TMPro.TextMeshProUGUI>();
-        defCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(40).GetComponent<TMPro.TextMeshProUGUI>();
-        resCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(42).GetComponent<TMPro.TextMeshProUGUI>();
-        spdCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(44).GetComponent<TMPro.TextMeshProUGUI>();
-        movCOST = upgradeMenu.transform.GetChild(1).transform.GetChild(46).GetComponent<TMPro.TextMeshProUGUI>();
-        weaponIMG = upgradeMenu.transform.GetChild(1).transform.GetChild(47).GetComponent<Image>();
-        hpButton = upgradeMenu.transform.GetChild(1).transform.GetChild(32).GetComponent<Button>();
-        strButton = upgradeMenu.transform.GetChild(1).transform.GetChild(35).GetComponent<Button>();
-        magButton = upgradeMenu.transform.GetChild(1).transform.GetChild(37).GetComponent<Button>();
-        defButton = upgradeMenu.transform.GetChild(1).transform.GetChild(39).GetComponent<Button>();
-        resButton = upgradeMenu.transform.GetChild(1).transform.GetChild(41).GetComponent<Button>();
-        spdButton = upgradeMenu.transform.GetChild(1).transform.GetChild(43).GetComponent<Button>();
-        movButton = upgradeMenu.transform.GetChild(1).transform.GetChild(45).GetComponent<Button>();
-        weaponStatsPanel = upgradeMenu.transform.GetChild(1).transform.GetChild(48).gameObject;
+        charName = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(3).GetComponent<TMPro.TMP_InputField>();
+        charImage = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(6).GetComponent<Image>();
+        bodyDropdown = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(8).GetComponent<Dropdown>();
+        weaponDropdown = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(10).GetComponent<Dropdown>();
+        hpNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(18).GetComponent<TMPro.TextMeshProUGUI>();
+        strNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(19).GetComponent<TMPro.TextMeshProUGUI>();
+        magNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(20).GetComponent<TMPro.TextMeshProUGUI>();
+        spdNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(21).GetComponent<TMPro.TextMeshProUGUI>();
+        defNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(22).GetComponent<TMPro.TextMeshProUGUI>();
+        resNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(23).GetComponent<TMPro.TextMeshProUGUI>();
+        movNUM = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(24).GetComponent<TMPro.TextMeshProUGUI>();
+        hpMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(25).GetComponent<TMPro.TextMeshProUGUI>();
+        strMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(26).GetComponent<TMPro.TextMeshProUGUI>();
+        magMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(27).GetComponent<TMPro.TextMeshProUGUI>();
+        spdMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(28).GetComponent<TMPro.TextMeshProUGUI>();
+        defMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(29).GetComponent<TMPro.TextMeshProUGUI>();
+        resMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(30).GetComponent<TMPro.TextMeshProUGUI>();
+        movMOD = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(31).GetComponent<TMPro.TextMeshProUGUI>();
+        hpCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(34).GetComponent<TMPro.TextMeshProUGUI>();
+        strCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(36).GetComponent<TMPro.TextMeshProUGUI>();
+        magCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(38).GetComponent<TMPro.TextMeshProUGUI>();
+        defCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(40).GetComponent<TMPro.TextMeshProUGUI>();
+        resCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(42).GetComponent<TMPro.TextMeshProUGUI>();
+        spdCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(44).GetComponent<TMPro.TextMeshProUGUI>();
+        movCOST = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(46).GetComponent<TMPro.TextMeshProUGUI>();
+        weaponIMG = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(47).GetComponent<Image>();
+        hpButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(32).GetComponent<Button>();
+        strButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(35).GetComponent<Button>();
+        magButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(37).GetComponent<Button>();
+        defButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(39).GetComponent<Button>();
+        resButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(41).GetComponent<Button>();
+        spdButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(43).GetComponent<Button>();
+        movButton = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(45).GetComponent<Button>();
+        weaponStatsPanel = upgradeMenu.transform.GetChild(0).GetChild(4).transform.GetChild(48).gameObject;
         weaponStats1 = weaponStatsPanel.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>();
         weaponStats2 = weaponStatsPanel.transform.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>();
         weaponRange = weaponStatsPanel.transform.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>();
@@ -313,10 +326,10 @@ public class MGameController : NetworkBehaviour
             p1Units[i] = child.gameObject;
             p1Stats[i] = p1Units[i].GetComponent<Character>();
             p1Units[i].transform.position = p1StartPos[i];
-            p1Stats[i].changeBody(p1bodysList[i]);
-            p1Stats[i].changeWeapon(p1weaponsList[i]);
+            //p1Stats[i].changeBody(p1bodysList[i]);
+            //p1Stats[i].changeWeapon(p1weaponsList[i]);
             p1Stats[i].playerNum = 1;
-            p1Stats[i].setBodyVisuals();
+            //p1Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -327,10 +340,10 @@ public class MGameController : NetworkBehaviour
             p2Units[i] = child.gameObject;
             p2Stats[i] = p2Units[i].GetComponent<Character>();
             p2Units[i].transform.position = p2StartPos[i];
-            p2Stats[i].changeBody(p2bodysList[i]);
-            p2Stats[i].changeWeapon(p2weaponsList[i]);
+            //p2Stats[i].changeBody(p2bodysList[i]);
+            //p2Stats[i].changeWeapon(p2weaponsList[i]);
             p2Stats[i].playerNum = 2;
-            p2Stats[i].setBodyVisuals();
+            //p2Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -365,7 +378,7 @@ public class MGameController : NetworkBehaviour
         }
 
         clickLock = 3;
-        
+        float targetZoom = mainCamera.orthographicSize;
     }
 
     public void turnOffGrids()
@@ -379,8 +392,8 @@ public class MGameController : NetworkBehaviour
     [ServerRpc]
     public void InitializeGameServerRpc()
     {
-        //if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
-           // return;
+        if (NetworkManager.Singleton.LocalClientId == (ulong)player2)
+            return;
         if (NetworkManager.Singleton.ConnectedClientsList.Count != 2)
             return;
 
@@ -399,7 +412,7 @@ public class MGameController : NetworkBehaviour
             Destroy(p1Units[9 - j]);
             Destroy(p2Units[9 - j]);
         }
-
+        
         // reinitialize p1
         p1Units = new GameObject[p1.transform.childCount];
         p1Stats = new Character[p1.transform.childCount];
@@ -409,10 +422,10 @@ public class MGameController : NetworkBehaviour
             p1Units[i] = child.gameObject;
             p1Stats[i] = p1Units[i].GetComponent<Character>();
             p1Units[i].transform.position = p1StartPos[i];
-            p1Stats[i].changeBody(p1bodysList[i]);
-            p1Stats[i].changeWeapon(p1weaponsList[i]);
+            //p1Stats[i].changeBody(p1bodysList[i]);
+            //p1Stats[i].changeWeapon(p1weaponsList[i]);
             p1Stats[i].playerNum = 1;
-            p1Stats[i].setBodyVisuals();
+            //p1Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -426,14 +439,14 @@ public class MGameController : NetworkBehaviour
             p2Units[i] = child.gameObject;
             p2Stats[i] = p2Units[i].GetComponent<Character>();
             p2Units[i].transform.position = p2StartPos[i];
-            p2Stats[i].changeBody(p2bodysList[i]);
-            p2Stats[i].changeWeapon(p2weaponsList[i]);
+            //p2Stats[i].changeBody(p2bodysList[i]);
+            //p2Stats[i].changeWeapon(p2weaponsList[i]);
             p2Stats[i].playerNum = 2;
-            p2Stats[i].setBodyVisuals();
+            //p2Stats[i].setBodyVisuals();
 
             i += 1;
         }
-        
+
         player2 = (int)NetworkManager.Singleton.ConnectedClientsIds[1];
         // assign lobby spring amount
         giveGearNum(LobbyData.Instance.getSprings(), false); ;
@@ -462,7 +475,7 @@ public class MGameController : NetworkBehaviour
     [ClientRpc]
     private void InitializeGameClientRpc(int unitNum, int mapNum)
     {
-        if (NetworkManager.Singleton.LocalClientId == (ulong)player1)
+        if (NetworkManager.Singleton.IsHost)
             return;
 
         player2 = (int)NetworkManager.Singleton.LocalClientId;
@@ -495,7 +508,6 @@ public class MGameController : NetworkBehaviour
             p1Stats[i].changeBody(p1bodysList[i]);
             p1Stats[i].changeWeapon(p1weaponsList[i]);
             p1Stats[i].playerNum = 1;
-            p1Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -512,7 +524,6 @@ public class MGameController : NetworkBehaviour
             p2Stats[i].changeBody(p2bodysList[i]);
             p2Stats[i].changeWeapon(p2weaponsList[i]);
             p2Stats[i].playerNum = 2;
-            p2Stats[i].setBodyVisuals();
 
             i += 1;
         }
@@ -534,7 +545,37 @@ public class MGameController : NetworkBehaviour
             StartCoroutine(delayInitialize());
         }
         
-        
+        // Map mode only
+        if (currGameMode == gameMode.MapMode)
+        {
+            // camera move up
+            if (Input.GetKey(KeyCode.W) && mainCamera.transform.position.y < worldLimPlusY)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y + camMoveAmount, mainCamera.transform.position.z);
+            }
+            // camera move down
+            if (Input.GetKey(KeyCode.S) && mainCamera.transform.position.y > worldLimMinusY)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y - camMoveAmount, mainCamera.transform.position.z);
+            }
+            // camera move left
+            if (Input.GetKey(KeyCode.A) && mainCamera.transform.position.x > worldLimMinusX)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x - camMoveAmount, mainCamera.transform.position.y, mainCamera.transform.position.z);
+            }
+            // camera move right
+            if (Input.GetKey(KeyCode.D) && mainCamera.transform.position.x < worldLimPlusX)
+            {
+                mainCamera.transform.position = new Vector3(mainCamera.transform.position.x + camMoveAmount, mainCamera.transform.position.y, mainCamera.transform.position.z);
+            }
+            
+            targetZoom -= Input.mouseScrollDelta.y * sensitivity;
+            targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
+            float newSize = Mathf.MoveTowards(mainCamera.orthographicSize, targetZoom, camSpeed * Time.deltaTime);
+            mainCamera.orthographicSize = newSize;
+        }
+
+
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             if (NetworkManager.Singleton.LocalClientId == (ulong)player1 && (clickLock == 1 || clickLock == 3))
@@ -1773,6 +1814,10 @@ public class MGameController : NetworkBehaviour
             return;
         if (upgradeMenu.activeSelf == true)
         {
+            charInfoPanel.gameObject.SetActive(true);
+            p1Targeted.transform.GetChild(0).gameObject.SetActive(true);
+            mainCamera.transform.position = savedPosCam;
+            mainCamera.orthographicSize = savedCamSize;
                
             changeMode(gameMode.MapMode);
             upgradeMenu.gameObject.SetActive(false);
@@ -1795,6 +1840,10 @@ public class MGameController : NetworkBehaviour
             return;
         if (upgradeMenu.activeSelf == true)
         {
+            charInfoPanel.gameObject.SetActive(true);
+            p2Targeted.transform.GetChild(0).gameObject.SetActive(true);
+            mainCamera.transform.position = savedPosCam;
+            mainCamera.orthographicSize = savedCamSize;
                
             changeMode(gameMode.MapMode);
             upgradeMenu.gameObject.SetActive(false);
@@ -2234,7 +2283,15 @@ public class MGameController : NetworkBehaviour
      {
          GameObject unit = GameObject.Find(name);
          unit.GetComponent<Character>().changeBody((Character.bodyType)val);
+         StartCoroutine(delayUpdateWeapon(name));
          updateUpgradeMenuServerRpc(unit.name);
+     }
+
+     public IEnumerator delayUpdateWeapon(string name)
+     {
+         yield return new WaitForSeconds(0.01f);
+         GameObject unit = GameObject.Find(name);
+         unit.GetComponent<Character>().setWeaponVisuals();
      }
      
      [ServerRpc(RequireOwnership = false)]
@@ -2242,10 +2299,9 @@ public class MGameController : NetworkBehaviour
      {
          GameObject unit = GameObject.Find(name);
          Character unitStats = unit.GetComponent<Character>();
-         unitStats.changeBody((Character.bodyType)val);
+         //unitStats.changeBody((Character.bodyType)val);
          changedBodyClientRpc(val, unit.name);
          updateUpgradeMenuServerRpc(unit.name);
-         
      }
 
      [ClientRpc]
@@ -2261,7 +2317,7 @@ public class MGameController : NetworkBehaviour
      {
          GameObject unit = GameObject.Find(name);
          Character unitStats = unit.GetComponent<Character>();
-         unitStats.changeWeapon((Character.weaponType)val);
+         //unitStats.changeWeapon((Character.weaponType)val);
          changedWeaponClientRpc(val, unit.name);
          updateUpgradeMenuServerRpc(unit.name);
      }
@@ -2288,6 +2344,14 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        
+        charInfoPanel.gameObject.SetActive(false);
+        p1Targeted.transform.GetChild(0).gameObject.SetActive(false);
+        savedCamSize = mainCamera.orthographicSize;
+        savedPosCam = mainCamera.transform.position;
+        mainCamera.orthographicSize = 2f;
+        mainCamera.transform.position = new Vector3(p1Targeted.transform.position.x + 0.75f, p1Targeted.transform.position.y - 0.85f, -3);
+        
         contextMenu.SetActive(false);
         upgradeMenu.gameObject.SetActive(true);
         updateUpgradeMenuServerRpc(p1Targeted.name);
@@ -2965,6 +3029,14 @@ public class MGameController : NetworkBehaviour
         {
             return;
         }
+        
+        charInfoPanel.gameObject.SetActive(false);
+        p2Targeted.transform.GetChild(0).gameObject.SetActive(false);
+        savedCamSize = mainCamera.orthographicSize;
+        savedPosCam = mainCamera.transform.position;
+        mainCamera.orthographicSize = 2f;
+        mainCamera.transform.position = new Vector3(p2Targeted.transform.position.x + 0.75f, p2Targeted.transform.position.y - 0.85f, -3);
+        
         contextMenu.SetActive(false);
         upgradeMenu.gameObject.SetActive(true);
         updateUpgradeMenuServerRpc(p2Targeted.name);
@@ -3137,6 +3209,7 @@ public class MGameController : NetworkBehaviour
                     // face right
                     p1Targeted.transform.rotation = new Quaternion(0f, 180f, 0f, 0f);
                     p1Targeted.transform.localScale = new Vector3(1f, 1f, -1f);
+                    
                 }
 
                 copyRotClientRpc(p1Targeted.name, p1Targeted.transform.rotation);
