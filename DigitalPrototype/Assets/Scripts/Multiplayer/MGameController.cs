@@ -3623,7 +3623,9 @@ public class MGameController : NetworkBehaviour
     
     public IEnumerator LerpPosition(GameObject theObject, Vector3 targetPosition, float duration)
     {
-        float time = 0;
+        theObject.transform.GetChild(1).GetComponent<Animator>().Play("attack");
+        yield return null;
+        /*float time = 0;
         Vector2 startPosition = theObject.transform.position;
         while (time < duration)
         {
@@ -3644,7 +3646,7 @@ public class MGameController : NetworkBehaviour
             yield return null;
         }
 
-        theObject.transform.position = startPosition;
+        theObject.transform.position = startPosition;*/
     }
     
       
